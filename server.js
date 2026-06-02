@@ -114,7 +114,9 @@ function startQuestion() {
     game.timeLeft--;
     io.emit('timer_tick', { timeLeft: game.timeLeft });
 
-    if (game.timeLeft <= 0 || allAnswered()) {
+    // Seul le timer ferme la question automatiquement
+    // (le host peut aussi fermer manuellement via skip_question)
+    if (game.timeLeft <= 0) {
       clearInterval(game.timer);
       revealQuestion();
     }
@@ -252,12 +254,6 @@ io.on('connection', socket => {
 
     socket.emit('answer_received', { correct, points, answerIndex });
     if (hostSocketId) io.to(hostSocketId).emit('answer_update', { distribution: answerDist });
-
-    // *** FIX : vérifier que le tableau n'est pas vide avant every() ***
-    if (allAnswered()) {
-      clearInterval(game.timer);
-      revealQuestion();
-    }
   });
 
   // ── Skip question ──
