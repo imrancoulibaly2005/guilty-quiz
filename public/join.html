@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GUILTY? — Rejoindre</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+  body { display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 24px 16px 40px; }
+
+  .header { text-align: center; margin-bottom: 24px; }
+  .header .logo { font-size: clamp(2.5rem,8vw,4.5rem); }
+  .header p { color: var(--gray); font-size: .9rem; margin-top: 4px; }
+
+  .join-form { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 16px; }
+
+  .field label { display: block; font-size: .8rem; font-weight: 700; text-transform: uppercase;
+                  letter-spacing: 1px; color: var(--gray); margin-bottom: 6px; }
+
+  /* Avatar grid */
+  .av-section { width: 100%; max-width: 480px; }
+  .av-section h3 { font-size: .8rem; font-weight: 700; text-transform: uppercase;
+                    letter-spacing: 1px; color: var(--gray); margin-bottom: 10px; }
+  .av-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  @media (min-width: 400px) { .av-grid { grid-template-columns: repeat(4, 1fr); } }
+  @media (min-width: 520px) { .av-grid { grid-template-columns: repeat(5, 1fr); } }
+
+  .taken-notice {
+    display: none;
+    background: rgba(231,76,60,.15);
+    border: 1px solid var(--red2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: .88rem;
+    color: var(--red2);
+    text-align: center;
+  }
+  .taken-notice.visible { display: block; }
+
+  .error-msg {
+    background: rgba(231,76,60,.15);
+    border: 1px solid var(--red2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: .9rem;
+    color: var(--red2);
+    text-align: center;
+    display: none;
+  }
+  .error-msg.visible { display: block; }
+
+  #btn-join { width: 100%; font-size: 1.5rem; padding: 16px; }
+
+  .waiting-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    text-align: center;
+    min-height: 60vh;
+  }
+  .waiting-screen.active { display: flex; }
+  .waiting-avatar {
+    width: 140px; height: 180px;
+    border-radius: 10px;
+    object-fit: cover;
+    border: 3px solid var(--red);
+    box-shadow: 0 0 30px rgba(192,57,43,.4);
+  }
+  .waiting-screen h2 { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 2px; }
+  .waiting-screen p  { color: var(--gray); }
+  .dot-spin::after {
+    content: '';
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--gold);
+    animation: blink 1.2s infinite;
+    margin-left: 6px;
+  }
+  @keyframes blink { 0%,100%{opacity:.2} 50%{opacity:1} }
+  .pulse-ring {
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    border: 2px solid var(--red);
+    animation: ring 2s infinite;
+    display: flex; align-items: center; justify-content: center;
+  }
+  @keyframes ring {
+    0%   { box-shadow: 0 0 0 0 rgba(192,57,43,.5); }
+    70%  { box-shadow: 0 0 0 20px rgba(192,57,43,0); }
+    100% { box-shadow: 0 0 0 0 rgba(192,57,43,0); }
+  }
+</style>
+</head>
+<body>
+
+<div id="main-view">
+  <div class="header">
+    <div class="logo bebas">GUILTY<span>?</span></div>
+    <p>Choisis ton avatar et rejoins la salle</p>
+  </div>
+
+  <div class="join-form">
+    <div class="field">
+      <label>Code de salle</label>
+      <input type="text" id="room-code" placeholder="ex: 4827" maxlength="4" style="text-align:center;font-size:1.6rem;letter-spacing:6px;font-family:'Bebas Neue',sans-serif;">
+    </div>
+    <div class="field">
+      <label>Ton pseudo</label>
+      <input type="text" id="nickname" placeholder="Comment t'appelles-tu ?" maxlength="20" autocomplete="off">
+    </div>
+  </div>
+
+  <br>
+
+  <div class="av-section">
+    <h3>Choisis ton avatar <span id="av-hint" style="color:var(--red);font-size:.75rem;">(1 seul par joueur)</span></h3>
+    <div id="av-grid" class="av-grid">
+      <!-- Avatars injectés par JS -->
+    </div>
+    <div id="taken-notice" class="taken-notice" style="margin-top:10px;">
+      Cet avatar vient d'être pris par quelqu'un d'autre !
+    </div>
+  </div>
+
+  <br>
+  <div style="width:100%;max-width:480px;">
+    <div id="error-msg" class="error-msg"></div>
+    <br>
+    <button id="btn-join" class="btn btn-red" disabled>REJOINDRE</button>
+  </div>
+</div>
+
+<!-- Écran d'attente après le join -->
+<div id="waiting-view" class="waiting-screen">
+  <div class="pulse-ring">
+    <img id="chosen-avatar" class="waiting-avatar" src="" alt="avatar">
+  </div>
+  <div>
+    <h2 id="player-name-display"></h2>
+    <p class="dot-spin">En attente du host</p>
+  </div>
+  <div style="color:var(--gray);font-size:.85rem;">
+    La partie va bientôt commencer…
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+// ── State ───────────────────────────────────────────────────
+let selectedAvatarId = null;
+let avatarList       = [];
+let takenSet         = new Set();
+let socket           = null;
+
+// ── Pré-remplir le room code depuis l'URL ───────────────────
+const urlParams  = new URLSearchParams(location.search);
+const roomFromUrl = urlParams.get('room');
+if (roomFromUrl) document.getElementById('room-code').value = roomFromUrl;
+
+// ── Charger les avatars ─────────────────────────────────────
+async function loadAvatars() {
+  try {
+    const res  = await fetch('/api/avatars');
+    const data = await res.json();
+    avatarList = data.avatars;
+    takenSet   = new Set(data.takenIds);
+    renderGrid();
+  } catch {
+    document.getElementById('av-grid').innerHTML =
+      '<p style="color:var(--gray);font-size:.85rem">Impossible de charger les avatars.</p>';
+  }
+}
+
+function renderGrid() {
+  const grid = document.getElementById('av-grid');
+  grid.innerHTML = '';
+  avatarList.forEach(av => {
+    const isTaken = takenSet.has(av.id);
+    const card    = document.createElement('div');
+    card.className = 'avatar-card' + (isTaken ? ' taken' : '') + (av.id === selectedAvatarId ? ' selected' : '');
+    card.dataset.id = av.id;
+    card.innerHTML = `
+      <img src="/avatars/${av.file}" alt="${av.label}" loading="lazy">
+      <div class="av-label">${av.label}</div>
+    `;
+    if (!isTaken) {
+      card.addEventListener('click', () => selectAvatar(av.id));
+    }
+    grid.appendChild(card);
+  });
+}
+
+function updateTaken(takenIds) {
+  const prevSelected = selectedAvatarId;
+  takenSet = new Set(takenIds);
+
+  // Si notre avatar vient d'être pris
+  if (selectedAvatarId && takenSet.has(selectedAvatarId)) {
+    selectedAvatarId = null;
+    document.getElementById('taken-notice').classList.add('visible');
+    setTimeout(() => document.getElementById('taken-notice').classList.remove('visible'), 3500);
+  }
+  renderGrid();
+  checkJoinReady();
+}
+
+function selectAvatar(id) {
+  if (takenSet.has(id)) return;
+  selectedAvatarId = id;
+  document.getElementById('taken-notice').classList.remove('visible');
+  renderGrid();
+  checkJoinReady();
+}
+
+function checkJoinReady() {
+  const nick = document.getElementById('nickname').value.trim();
+  const code = document.getElementById('room-code').value.trim();
+  document.getElementById('btn-join').disabled = !(nick && code && selectedAvatarId);
+}
+
+document.getElementById('nickname').addEventListener('input', checkJoinReady);
+document.getElementById('room-code').addEventListener('input', checkJoinReady);
+
+// ── Socket ─────────────────────────────────────────────────
+function initSocket() {
+  socket = io({ transports: ['websocket', 'polling'] });
+
+  socket.on('avatar_update', ({ takenIds }) => updateTaken(takenIds));
+
+  socket.on('join_success', ({ nickname, avatarId, score }) => {
+    // Stocker en sessionStorage pour play.html
+    sessionStorage.setItem('gq_nickname', nickname);
+    sessionStorage.setItem('gq_avatarId', avatarId);
+    sessionStorage.setItem('gq_score',    score);
+
+    // Afficher écran d'attente
+    const av = avatarList.find(a => a.id === avatarId);
+    document.getElementById('chosen-avatar').src = `/avatars/${av ? av.file : ''}`;
+    document.getElementById('player-name-display').textContent = nickname;
+    document.getElementById('main-view').style.display    = 'none';
+    document.getElementById('waiting-view').classList.add('active');
+  });
+
+  socket.on('join_error', ({ message }) => {
+    const el = document.getElementById('error-msg');
+    el.textContent = message;
+    el.classList.add('visible');
+    setTimeout(() => el.classList.remove('visible'), 4000);
+    document.getElementById('btn-join').disabled = false;
+  });
+
+  socket.on('game_start', () => {
+    window.location.href = '/play';
+  });
+
+  socket.on('game_reset', ({ roomCode }) => {
+    sessionStorage.clear();
+    document.getElementById('room-code').value = roomCode;
+    document.getElementById('waiting-view').classList.remove('active');
+    document.getElementById('main-view').style.display = '';
+    selectedAvatarId = null;
+    renderGrid();
+    checkJoinReady();
+  });
+}
+
+// ── Join handler ────────────────────────────────────────────
+document.getElementById('btn-join').addEventListener('click', () => {
+  const nickname  = document.getElementById('nickname').value.trim();
+  const roomCode  = document.getElementById('room-code').value.trim().toUpperCase();
+  if (!nickname || !roomCode || !selectedAvatarId) return;
+
+  document.getElementById('btn-join').disabled = true;
+  document.getElementById('error-msg').classList.remove('visible');
+
+  socket.emit('join_room', { roomCode, nickname, avatarId: selectedAvatarId });
+});
+
+// ── Init ────────────────────────────────────────────────────
+loadAvatars();
+initSocket();
+</script>
+</body>
+</html>

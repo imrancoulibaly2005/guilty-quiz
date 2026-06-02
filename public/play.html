@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GUILTY? — Jouer</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+  body { display: flex; flex-direction: column; min-height: 100vh; max-width: 520px; margin: 0 auto; padding: 0; }
+
+  /* ── All screens ── */
+  .screen { display: none; flex-direction: column; align-items: center; justify-content: flex-start;
+            padding: 16px; min-height: 100vh; gap: 12px; }
+  .screen.active { display: flex; }
+
+  /* ── Top bar ── */
+  .topbar {
+    width: 100%;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 0; margin-bottom: 4px;
+  }
+  .topbar .my-info { display: flex; align-items: center; gap: 8px; }
+  .topbar .my-av   { width: 36px; height: 36px; border-radius: 6px; object-fit: cover; border: 2px solid var(--red); }
+  .topbar .my-nick { font-weight: 700; font-size: .9rem; }
+  .topbar .my-score{ font-family: 'Bebas Neue',sans-serif; font-size: 1.3rem; color: var(--gold); }
+  .q-progress { font-size: .8rem; color: var(--gray); }
+
+  /* ── Waiting ── */
+  #s-waiting { justify-content: center; text-align: center; gap: 24px; }
+  .wait-avatar { width: 150px; height: 190px; border-radius: 12px; object-fit: cover;
+                  border: 3px solid var(--red); box-shadow: 0 0 30px rgba(192,57,43,.4); }
+  .wait-title  { font-family:'Bebas Neue',sans-serif; font-size:2.2rem; letter-spacing:2px; }
+  .wait-sub    { color:var(--gray); }
+  .wait-dots span { display:inline-block; width:8px;height:8px;border-radius:50%;
+                    background:var(--gold); margin:0 3px;
+                    animation: bounce .9s infinite; }
+  .wait-dots span:nth-child(2){ animation-delay:.15s; }
+  .wait-dots span:nth-child(3){ animation-delay:.3s; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+
+  /* ── Question ── */
+  #s-question { padding-top: 10px; }
+  .celeb-wrap { width: 100%; display: flex; align-items: flex-start; gap: 14px; }
+  .polaroid-sm {
+    background: #f5f0e8; padding: 7px 7px 28px; box-shadow: var(--shadow);
+    transform: rotate(-2deg); flex-shrink: 0; width: 110px;
+    position: relative;
+  }
+  .polaroid-sm img { width: 96px; height: 96px; object-fit: cover; display: block; }
+  .polaroid-sm .stamp {
+    position:absolute; top:8px; right:4px;
+    font-family:'Bebas Neue',sans-serif; font-size:.85rem; color:var(--red);
+    border:2px solid var(--red); padding:1px 5px; transform:rotate(12deg);
+    opacity:.9; letter-spacing:2px;
+  }
+  .celeb-info { flex: 1; }
+  .celeb-name { font-family:'Bebas Neue',sans-serif; font-size:1.5rem; letter-spacing:1px; line-height:1; }
+  .q-text     { font-size:.95rem; font-weight:500; line-height:1.4; margin-top:8px; color:#ddd; }
+
+  .timer-zone { display: flex; align-items: center; gap: 14px; width: 100%; }
+  .timer-wrap { flex-shrink: 0; }
+  .answered-tag {
+    flex: 1;
+    background: var(--bg3);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: .9rem;
+    color: var(--gray);
+    display: none;
+  }
+
+  /* ── Reveal ── */
+  #s-reveal { text-align: center; justify-content: center; gap: 18px; }
+  .result-icon { font-size: 4rem; }
+  .result-title { font-family:'Bebas Neue',sans-serif; font-size:2.4rem; letter-spacing:2px; }
+  .result-points { font-family:'Bebas Neue',sans-serif; font-size:3.5rem; color:var(--gold); }
+  .fact-box { background:var(--bg3); border-left:3px solid var(--red); border-radius:0 8px 8px 0;
+              padding:12px 16px; font-size:.9rem; color:#ccc; text-align:left; line-height:1.5;
+              max-width:440px; }
+
+  /* ── Leaderboard ── */
+  #s-leaderboard { }
+  #s-leaderboard h2 { font-family:'Bebas Neue',sans-serif; font-size:2rem; letter-spacing:2px;
+                       width:100%; text-align:center; }
+
+  /* ── Game Over ── */
+  #s-gameover { text-align:center; justify-content:center; gap:20px; }
+  #s-gameover .logo { font-size:3rem; }
+  .final-rank { font-family:'Bebas Neue',sans-serif; font-size:1.2rem; color:var(--gray); }
+  .final-score{ font-family:'Bebas Neue',sans-serif; font-size:4rem; color:var(--gold); }
+  .podium-trophy { font-size:4rem; }
+
+  /* ── Error ── */
+  #s-error { justify-content: center; text-align: center; gap: 16px; }
+  #s-error p { color:var(--gray); }
+</style>
+</head>
+<body>
+
+<!-- WAITING -->
+<div id="s-waiting" class="screen active">
+  <img id="w-avatar" class="wait-avatar" src="" alt="">
+  <div>
+    <div id="w-name" class="wait-title"></div>
+    <div class="wait-sub" style="margin-top:6px;">En attente du host…</div>
+  </div>
+  <div class="wait-dots"><span></span><span></span><span></span></div>
+  <div style="color:var(--gray);font-size:.8rem;">La partie va bientôt commencer</div>
+</div>
+
+<!-- QUESTION -->
+<div id="s-question" class="screen">
+  <div class="topbar">
+    <div class="my-info">
+      <img id="q-my-av" class="my-av" src="" alt="">
+      <span id="q-my-nick" class="my-nick"></span>
+    </div>
+    <span id="q-progress" class="q-progress"></span>
+    <span id="q-my-score" class="my-score">0 pts</span>
+  </div>
+
+  <div class="celeb-wrap">
+    <div class="polaroid-sm">
+      <img id="celeb-photo" src="" alt="">
+      <div class="stamp">ACCUSED</div>
+    </div>
+    <div class="celeb-info">
+      <div id="celeb-name" class="celeb-name"></div>
+      <div id="q-text" class="q-text"></div>
+    </div>
+  </div>
+
+  <div class="timer-zone">
+    <div class="timer-wrap">
+      <svg width="80" height="80" viewBox="0 0 80 80">
+        <circle class="timer-track" cx="40" cy="40" r="35"/>
+        <circle id="timer-fill" class="timer-fill" cx="40" cy="40" r="35"/>
+      </svg>
+      <div id="timer-num" class="timer-num">20</div>
+    </div>
+    <div id="answered-tag" class="answered-tag">
+      ✅ Réponse envoyée !<br><small>En attente des autres…</small>
+    </div>
+  </div>
+
+  <div id="ans-grid" class="ans-grid" style="width:100%;">
+    <button class="ans-btn A" data-idx="0"><span class="shape">▲</span><span class="ans-text"></span></button>
+    <button class="ans-btn B" data-idx="1"><span class="shape">◆</span><span class="ans-text"></span></button>
+    <button class="ans-btn C" data-idx="2"><span class="shape">●</span><span class="ans-text"></span></button>
+    <button class="ans-btn D" data-idx="3"><span class="shape">■</span><span class="ans-text"></span></button>
+  </div>
+</div>
+
+<!-- REVEAL -->
+<div id="s-reveal" class="screen">
+  <div class="topbar" style="justify-content:center;">
+    <span class="tag bebas">RÉSULTAT</span>
+  </div>
+  <div id="result-icon"  class="result-icon"></div>
+  <div id="result-title" class="result-title"></div>
+  <div id="result-pts"   class="result-points score-pop"></div>
+  <div id="fact-box"     class="fact-box"></div>
+  <div style="color:var(--gray);font-size:.85rem;margin-top:8px;">Prochaine question dans quelques secondes…</div>
+</div>
+
+<!-- LEADERBOARD -->
+<div id="s-leaderboard" class="screen">
+  <div class="topbar" style="justify-content:center;">
+    <span class="tag bebas">CLASSEMENT</span>
+  </div>
+  <h2>Top joueurs</h2>
+  <div id="lb-list" style="width:100%;"></div>
+</div>
+
+<!-- GAME OVER -->
+<div id="s-gameover" class="screen">
+  <canvas id="confetti-canvas" class="confetti-canvas"></canvas>
+  <div class="logo bebas">GUILTY<span style="color:var(--gold)">?</span></div>
+  <div class="tag bebas">PARTIE TERMINÉE</div>
+  <div id="go-trophy" class="podium-trophy"></div>
+  <div id="go-rank"   class="final-rank"></div>
+  <div id="go-score"  class="final-score"></div>
+  <div id="go-lb"     style="width:100%;margin-top:12px;"></div>
+</div>
+
+<!-- ERROR -->
+<div id="s-error" class="screen">
+  <div class="logo bebas">GUILTY<span>?</span></div>
+  <div style="font-size:2rem;">😕</div>
+  <p id="error-text">Session expirée.</p>
+  <a href="/join" class="btn btn-red" style="text-decoration:none;margin-top:12px;">Rejoindre</a>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+// ── Helpers ──────────────────────────────────────────────────────────────────
+const SCREENS = ['waiting','question','reveal','leaderboard','gameover','error'];
+function show(name) {
+  SCREENS.forEach(s => {
+    const el = document.getElementById('s-' + s);
+    if (el) el.classList.toggle('active', s === name);
+  });
+}
+
+// Timer circle (r=35, circumference=2πr≈220)
+const CIRC = 2 * Math.PI * 35;
+const timerFill = document.getElementById('timer-fill');
+const timerNum  = document.getElementById('timer-num');
+timerFill.style.strokeDasharray = CIRC;
+
+function setTimer(t) {
+  const pct    = t / 20;
+  const offset = CIRC * (1 - pct);
+  timerFill.style.strokeDashoffset = offset;
+  timerNum.textContent = t;
+  const urgent = t <= 5;
+  timerFill.classList.toggle('urgent', urgent);
+  timerNum.classList.toggle('urgent', urgent);
+}
+
+function avatarUrl(id) {
+  if (!id) return '';
+  const av = window._avatarList?.find(a => a.id === id);
+  return av ? `/avatars/${av.file}` : '';
+}
+
+function renderLb(list, container) {
+  container.innerHTML = '';
+  const medals = ['🥇','🥈','🥉'];
+  list.forEach(p => {
+    const row = document.createElement('div');
+    row.className = 'lb-row fade-in' + (p.rank <= 3 ? ` rank-${p.rank}` : '');
+    row.innerHTML = `
+      <span class="lb-rank">${medals[p.rank-1] || p.rank}</span>
+      <img class="lb-avatar" src="${avatarUrl(p.avatarId)}" alt="" onerror="this.style.display='none'">
+      <span class="lb-name">${p.nickname}</span>
+      <span class="lb-score">${p.score} pts</span>
+    `;
+    container.appendChild(row);
+  });
+}
+
+// ── Session ───────────────────────────────────────────────────────────────────
+const myNickname = sessionStorage.getItem('gq_nickname');
+const myAvatarId = sessionStorage.getItem('gq_avatarId');
+let   myScore    = parseInt(sessionStorage.getItem('gq_score') || '0');
+let   currentQId = null;
+let   myAnswered  = false;
+
+if (!myNickname || !myAvatarId) {
+  show('error');
+  document.getElementById('error-text').textContent = 'Session introuvable. Rejoins la partie.';
+}
+
+// ── Set waiting screen identity ───────────────────────────────────────────────
+document.getElementById('w-name').textContent = myNickname || '';
+
+// Load avatars list for label/file lookups
+fetch('/api/avatars')
+  .then(r => r.json())
+  .then(d => {
+    window._avatarList = d.avatars;
+    const av = d.avatars.find(a => a.id === myAvatarId);
+    if (av) {
+      document.getElementById('w-avatar').src = `/avatars/${av.file}`;
+      document.getElementById('q-my-av').src  = `/avatars/${av.file}`;
+    }
+    document.getElementById('q-my-nick').textContent = myNickname;
+  });
+
+// ── Socket ────────────────────────────────────────────────────────────────────
+const socket = io({ transports: ['websocket', 'polling'] });
+
+socket.on('connect', () => {
+  if (!myNickname || !myAvatarId) return;
+  socket.emit('rejoin', { nickname: myNickname, avatarId: myAvatarId });
+});
+
+socket.on('rejoin_success', ({ score, phase }) => {
+  myScore = score;
+  document.getElementById('q-my-score').textContent = score + ' pts';
+  if (phase === 'waiting') show('waiting');
+  else if (phase === 'question') { /* question_start will arrive */ }
+  else if (phase === 'gameover') { /* game_over will arrive */ }
+});
+
+socket.on('join_error', ({ message }) => {
+  show('error');
+  document.getElementById('error-text').textContent = message;
+});
+
+// ── Game events ───────────────────────────────────────────────────────────────
+socket.on('game_start', () => {
+  show('waiting');
+});
+
+socket.on('question_start', ({ id, index, total, celebrity, question, options, photoUrl }) => {
+  currentQId  = id;
+  myAnswered  = false;
+
+  document.getElementById('q-progress').textContent   = `Q ${index + 1}/${total}`;
+  document.getElementById('celeb-name').textContent   = celebrity;
+  document.getElementById('q-text').textContent       = question;
+  document.getElementById('q-my-score').textContent   = myScore + ' pts';
+
+  // Photo
+  const img = document.getElementById('celeb-photo');
+  img.src = photoUrl || '';
+  img.onerror = () => { img.src = ''; };
+
+  // Options
+  document.querySelectorAll('.ans-btn').forEach((btn, i) => {
+    btn.querySelector('.ans-text').textContent = options[i];
+    btn.disabled = false;
+    btn.classList.remove('correct','wrong','show-correct');
+  });
+
+  document.getElementById('answered-tag').style.display = 'none';
+
+  setTimer(20);
+  show('question');
+});
+
+socket.on('timer_tick', ({ timeLeft }) => {
+  setTimer(timeLeft);
+  if (timeLeft <= 0 && !myAnswered) {
+    myAnswered = true;
+    lockButtons();
+  }
+});
+
+socket.on('already_answered', () => {
+  myAnswered = true;
+  lockButtons();
+});
+
+socket.on('answer_received', ({ correct, points }) => {
+  // Visual feedback handled in submit_answer click handler
+});
+
+socket.on('question_end', ({ correctIndex, fact, scores }) => {
+  // Show correct/wrong on buttons for a moment, then reveal screen
+  document.querySelectorAll('.ans-btn').forEach((btn, i) => {
+    if (i === correctIndex) btn.classList.add('show-correct');
+    else btn.classList.add('wrong');
+  });
+
+  setTimeout(() => {
+    // Reveal screen
+    const wasCorrect = myLastAnswer === correctIndex;
+    document.getElementById('result-icon').textContent  = wasCorrect ? '✅' : '❌';
+    document.getElementById('result-title').textContent = wasCorrect ? 'CORRECT !' : 'FAUX…';
+    document.getElementById('result-pts').textContent   = wasCorrect ? '+' + myLastPoints + ' pts' : '0 pt';
+    document.getElementById('result-pts').style.color   = wasCorrect ? 'var(--gold)' : 'var(--red2)';
+    document.getElementById('fact-box').textContent     = fact;
+
+    myScore = scores.find(p => p.nickname === myNickname)?.score ?? myScore;
+    sessionStorage.setItem('gq_score', myScore);
+
+    show('reveal');
+
+    // Leaderboard after 4s
+    setTimeout(() => {
+      renderLb(scores, document.getElementById('lb-list'));
+      show('leaderboard');
+    }, 4000);
+  }, 1000);
+});
+
+socket.on('game_over', ({ leaderboard }) => {
+  const me = leaderboard.find(p => p.nickname === myNickname);
+  const rank = me?.rank ?? '?';
+  const trophies = ['🥇','🥈','🥉'];
+  document.getElementById('go-trophy').textContent = trophies[rank-1] || '🎖️';
+  document.getElementById('go-rank').textContent   = `Classement final : #${rank}`;
+  document.getElementById('go-score').textContent  = (me?.score ?? myScore) + ' pts';
+  renderLb(leaderboard.slice(0,10), document.getElementById('go-lb'));
+  show('gameover');
+  if (rank <= 3) launchConfetti();
+});
+
+socket.on('game_reset', () => {
+  sessionStorage.clear();
+  window.location.href = '/join';
+});
+
+// ── Answer buttons ────────────────────────────────────────────────────────────
+let myLastAnswer = null;
+let myLastPoints = 0;
+let currentTimeLeft = 20;
+
+socket.on('timer_tick', ({ timeLeft }) => { currentTimeLeft = timeLeft; });
+
+document.querySelectorAll('.ans-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (myAnswered) return;
+    const idx = parseInt(btn.dataset.idx);
+    myAnswered   = true;
+    myLastAnswer = idx;
+
+    socket.emit('submit_answer', {
+      questionId:  currentQId,
+      answerIndex: idx,
+      timeLeft:    currentTimeLeft
+    });
+
+    // Lock all buttons, highlight chosen
+    document.querySelectorAll('.ans-btn').forEach((b, i) => {
+      b.disabled = true;
+      if (i !== idx) b.classList.add('wrong');
+    });
+    document.getElementById('answered-tag').style.display = 'block';
+
+    // Listen for server confirmation
+    socket.once('answer_received', ({ correct, points }) => {
+      myLastPoints = points;
+    });
+  });
+});
+
+function lockButtons() {
+  document.querySelectorAll('.ans-btn').forEach(b => b.disabled = true);
+  document.getElementById('answered-tag').style.display = 'block';
+  document.getElementById('answered-tag').innerHTML = '⏰ Temps écoulé !<br><small>En attente du résultat…</small>';
+}
+
+// ── Confetti ─────────────────────────────────────────────────────────────────
+function launchConfetti() {
+  const canvas  = document.getElementById('confetti-canvas');
+  const ctx     = canvas.getContext('2d');
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  canvas.style.display = 'block';
+
+  const particles = Array.from({length: 120}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height - canvas.height,
+    w: Math.random() * 12 + 4,
+    h: Math.random() * 6 + 3,
+    color: ['#f1c40f','#c0392b','#3498db','#2ecc71','#9b59b6'][Math.floor(Math.random()*5)],
+    vy: Math.random() * 3 + 2,
+    vx: (Math.random() - .5) * 2,
+    rot: Math.random() * 360,
+    drot: (Math.random() - .5) * 4
+  }));
+
+  let frames = 0;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.y   += p.vy;
+      p.x   += p.vx;
+      p.rot += p.drot;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot * Math.PI / 180);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      ctx.restore();
+      if (p.y > canvas.height) { p.y = -20; p.x = Math.random() * canvas.width; }
+    });
+    frames++;
+    if (frames < 300) requestAnimationFrame(draw);
+    else canvas.style.display = 'none';
+  }
+  draw();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GUILTY? — Host</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+  body { min-height: 100vh; padding: 0; overflow-x: hidden; }
+
+  /* ── Lobby ── */
+  #v-lobby {
+    display: flex; flex-direction: column; align-items: center;
+    min-height: 100vh; padding: 24px 20px 40px; gap: 20px;
+  }
+  .lobby-top { display: flex; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap; gap: 12px; }
+  .room-code-display {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3rem, 10vw, 7rem);
+    color: var(--white); letter-spacing: 6px; line-height: 1;
+  }
+  .room-code-display span { color: var(--red); }
+
+  .qr-box { background: #0a0a0a; padding: 10px; border-radius: 10px; border: 2px solid #222; }
+  .qr-box img { width: 160px; height: 160px; display: block; }
+  .qr-url { font-size: .75rem; color: var(--gray); text-align: center; margin-top: 6px; word-break: break-all; max-width: 160px; }
+
+  .player-count { font-family:'Bebas Neue',sans-serif; font-size:1.4rem; color:var(--gray); }
+  .player-count span { color:var(--gold); }
+
+  .player-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+    width: 100%;
+  }
+  .player-chip {
+    background: var(--bg3);
+    border-radius: 10px;
+    padding: 8px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    text-align: center;
+    animation: fadeIn .3s ease;
+  }
+  .player-chip img { width: 60px; height: 76px; border-radius: 6px; object-fit: cover; }
+  .player-chip span { font-size: .75rem; font-weight: 700; word-break: break-word; }
+
+  .start-btn-wrap { width: 100%; max-width: 400px; }
+  #btn-start { width: 100%; font-size: 1.8rem; padding: 18px; }
+  .start-hint { font-size: .8rem; color: var(--gray); text-align: center; margin-top: 6px; }
+
+  /* ── Game view ── */
+  #v-game {
+    display: none;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 16px 20px;
+    gap: 14px;
+  }
+
+  .game-header {
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid #222; padding-bottom: 12px;
+  }
+  .phase-tag { /* .tag already covers this */ }
+
+  /* Celebrity polaroid host-size */
+  .host-celeb-row { display: flex; align-items: flex-start; gap: 20px; }
+  .polaroid-lg {
+    background: #f5f0e8; padding: 10px 10px 40px; flex-shrink: 0;
+    box-shadow: var(--shadow); transform: rotate(-2deg);
+    position: relative; width: 160px;
+  }
+  .polaroid-lg img { width: 140px; height: 140px; object-fit: cover; display: block; }
+  .polaroid-lg .stamp-lg {
+    position: absolute; top: 12px; right: 6px;
+    font-family: 'Bebas Neue',sans-serif; font-size: 1.1rem; color: var(--red);
+    border: 2.5px solid var(--red); padding: 2px 7px; transform: rotate(12deg);
+    opacity: .9; letter-spacing: 3px;
+  }
+
+  .host-q-info { flex: 1; }
+  .host-celeb-name { font-family:'Bebas Neue',sans-serif; font-size:1.6rem; line-height:1; }
+  .host-q-text { font-size: 1.05rem; font-weight: 500; line-height: 1.4; margin-top: 8px; color: #ddd; }
+
+  /* Options list (display-only) */
+  .host-options { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+  .host-opt {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 14px; border-radius: 8px; font-size: .9rem;
+  }
+  .host-opt.A { background: rgba(231,76,60,.2);  border: 1px solid #e74c3c; }
+  .host-opt.B { background: rgba(52,152,219,.2);  border: 1px solid #3498db; }
+  .host-opt.C { background: rgba(243,156,18,.2);  border: 1px solid #f39c12; }
+  .host-opt.D { background: rgba(39,174,96,.2);   border: 1px solid #27ae60; }
+  .host-opt .shape { font-size: 1rem; }
+  .host-opt.correct-opt { font-weight: 900; filter: brightness(1.3); }
+
+  /* Timer + answer count */
+  .host-status-row { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .answer-count { font-family:'Bebas Neue',sans-serif; font-size:1.6rem; color:var(--gold); }
+  .answer-count small { font-size:.85rem; color:var(--gray); font-family:'DM Sans',sans-serif; font-weight:400; display:block; }
+
+  /* Distribution bars */
+  .dist-section { width: 100%; }
+  .dist-section h4 { font-size: .8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--gray); margin-bottom: 8px; }
+
+  /* ── Leaderboard overlay ── */
+  #v-leaderboard {
+    display: none;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 20px;
+    gap: 14px;
+    align-items: center;
+  }
+  #v-leaderboard h2 { font-family:'Bebas Neue',sans-serif; font-size:2.5rem; letter-spacing:3px; }
+
+  /* ── Game over ── */
+  #v-gameover {
+    display: none;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 24px 20px 40px;
+    gap: 18px;
+    align-items: center;
+  }
+  #v-gameover .logo { font-size: clamp(3rem,8vw,5rem); }
+
+  /* ── Reset btn ── */
+  #btn-reset { position: fixed; bottom: 16px; right: 16px; z-index: 50; opacity: .7; }
+  #btn-reset:hover { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ LOBBY ═══════════ -->
+<div id="v-lobby">
+  <div class="lobby-top">
+    <div>
+      <div class="logo bebas" style="font-size:clamp(2rem,6vw,3.5rem)">GUILTY<span>?</span></div>
+      <div class="room-code-display bebas">
+        Code : <span id="room-code-display">----</span>
+      </div>
+      <div id="player-count" class="player-count">
+        <span id="pcount">0</span> joueur(s) connecté(s)
+      </div>
+    </div>
+
+    <div>
+      <div class="qr-box">
+        <img id="qr-img" src="" alt="QR code">
+        <div id="qr-url" class="qr-url"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Player grid -->
+  <div style="width:100%">
+    <div style="font-size:.8rem;text-transform:uppercase;letter-spacing:1px;color:var(--gray);margin-bottom:10px;">
+      Joueurs dans la salle
+    </div>
+    <div id="player-grid" class="player-grid">
+      <div style="color:var(--gray);font-size:.85rem;padding:8px;">
+        En attente de joueurs…
+      </div>
+    </div>
+  </div>
+
+  <div class="start-btn-wrap">
+    <button id="btn-start" class="btn btn-gold" disabled>DÉMARRER LA PARTIE</button>
+    <p id="start-hint" class="start-hint">Besoin d'au moins 1 joueur pour commencer</p>
+  </div>
+</div>
+
+<!-- ═══════════ GAME ═══════════ -->
+<div id="v-game">
+  <div class="game-header">
+    <div class="logo bebas" style="font-size:1.8rem;">GUILTY<span>?</span></div>
+    <div id="q-tag" class="tag bebas">Q 1/20</div>
+    <div class="host-status-row">
+      <div class="timer-wrap">
+        <svg width="70" height="70" viewBox="0 0 80 80">
+          <circle class="timer-track" cx="40" cy="40" r="35"/>
+          <circle id="h-timer-fill" class="timer-fill" cx="40" cy="40" r="35"/>
+        </svg>
+        <div id="h-timer-num" class="timer-num" style="font-size:1.4rem;">20</div>
+      </div>
+      <div class="answer-count">
+        <span id="ans-count">0</span><small>réponses</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="host-celeb-row">
+    <div class="polaroid-lg">
+      <img id="h-celeb-photo" src="" alt="">
+      <div class="stamp-lg">ACCUSED</div>
+    </div>
+    <div class="host-q-info">
+      <div id="h-celeb-name" class="host-celeb-name"></div>
+      <div id="h-q-text"     class="host-q-text"></div>
+      <div id="h-options"    class="host-options"></div>
+    </div>
+  </div>
+
+  <div class="dist-section">
+    <h4>Distribution des réponses</h4>
+    <div id="dist-bars"></div>
+  </div>
+</div>
+
+<!-- ═══════════ LEADERBOARD ═══════════ -->
+<div id="v-leaderboard">
+  <div class="logo bebas" style="font-size:2.5rem;">GUILTY<span>?</span></div>
+  <span class="tag bebas">CLASSEMENT</span>
+  <h2>Top joueurs</h2>
+  <div id="h-lb-list" style="width:100%;max-width:600px;"></div>
+  <div style="color:var(--gray);font-size:.85rem;margin-top:8px;">Prochaine question dans quelques secondes…</div>
+</div>
+
+<!-- ═══════════ GAME OVER ═══════════ -->
+<div id="v-gameover">
+  <canvas id="confetti-canvas" class="confetti-canvas"></canvas>
+  <div class="logo bebas">GUILTY<span style="color:var(--gold)">?</span></div>
+  <span class="tag bebas">PARTIE TERMINÉE — CLASSEMENT FINAL</span>
+  <div id="go-lb" style="width:100%;max-width:600px;"></div>
+  <button id="btn-new-game" class="btn btn-red" style="margin-top:20px;font-size:1.4rem;padding:16px 40px;">
+    NOUVELLE PARTIE
+  </button>
+</div>
+
+<!-- Reset (always visible during game) -->
+<button id="btn-reset" class="btn btn-ghost" style="display:none;">🔄 Reset</button>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+// ── Views ─────────────────────────────────────────────────────────────────────
+const VIEWS = ['lobby','game','leaderboard','gameover'];
+function showView(name) {
+  VIEWS.forEach(v => {
+    const el = document.getElementById('v-' + v);
+    if (el) el.style.display = (v === name) ? 'flex' : 'none';
+  });
+  document.getElementById('btn-reset').style.display = (name !== 'lobby') ? 'block' : 'none';
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const CIRC = 2 * Math.PI * 35;
+const hTimerFill = document.getElementById('h-timer-fill');
+const hTimerNum  = document.getElementById('h-timer-num');
+hTimerFill.style.strokeDasharray = CIRC;
+
+function setTimer(t) {
+  hTimerFill.style.strokeDashoffset = CIRC * (1 - t/20);
+  hTimerNum.textContent = t;
+  const u = t <= 5;
+  hTimerFill.classList.toggle('urgent', u);
+  hTimerNum.classList.toggle('urgent', u);
+}
+
+let totalPlayers   = 0;
+let avatarList     = [];
+let currentOptions = [];
+
+function avatarUrl(id) {
+  const av = avatarList.find(a => a.id === id);
+  return av ? `/avatars/${av.file}` : '';
+}
+
+function renderPlayerGrid(players) {
+  const grid = document.getElementById('player-grid');
+  if (!players.length) {
+    grid.innerHTML = '<div style="color:var(--gray);font-size:.85rem;padding:8px;">En attente de joueurs…</div>';
+    return;
+  }
+  grid.innerHTML = '';
+  players.forEach(p => {
+    const chip = document.createElement('div');
+    chip.className = 'player-chip';
+    chip.innerHTML = `
+      <img src="${avatarUrl(p.avatarId)}" alt="" onerror="this.style.display='none'">
+      <span>${p.nickname}</span>
+    `;
+    grid.appendChild(chip);
+  });
+}
+
+function renderLb(list, container) {
+  container.innerHTML = '';
+  const medals = ['🥇','🥈','🥉'];
+  list.forEach(p => {
+    const row = document.createElement('div');
+    row.className = 'lb-row fade-in' + (p.rank <= 3 ? ` rank-${p.rank}` : '');
+    row.innerHTML = `
+      <span class="lb-rank">${medals[p.rank-1] || p.rank}</span>
+      <img class="lb-avatar" src="${avatarUrl(p.avatarId)}" alt="" onerror="this.style.display='none'">
+      <span class="lb-name">${p.nickname}</span>
+      <span class="lb-score">${p.score} pts</span>
+    `;
+    container.appendChild(row);
+  });
+}
+
+function updateDistBars(dist) {
+  const labels = ['A','B','C','D'];
+  const shapes = ['▲','◆','●','■'];
+  const max = Math.max(...dist, 1);
+  const container = document.getElementById('dist-bars');
+  container.innerHTML = '';
+  dist.forEach((n, i) => {
+    const pct = Math.round((n / max) * 100);
+    const wrap = document.createElement('div');
+    wrap.className = 'dist-bar-wrap';
+    wrap.innerHTML = `
+      <div class="dist-bar-label">
+        <span>${shapes[i]} ${currentOptions[i] || ''}</span>
+        <span>${n}</span>
+      </div>
+      <div class="dist-bar-track">
+        <div class="dist-bar-fill ${labels[i]}" style="width:${pct}%"></div>
+      </div>
+    `;
+    container.appendChild(wrap);
+  });
+}
+
+function renderOptions(options, correctIndex) {
+  const labels = ['A','B','C','D'];
+  const shapes = ['▲','◆','●','■'];
+  const container = document.getElementById('h-options');
+  container.innerHTML = '';
+  options.forEach((opt, i) => {
+    const div = document.createElement('div');
+    div.className = `host-opt ${labels[i]}${i === correctIndex ? ' correct-opt' : ''}`;
+    div.innerHTML = `<span class="shape">${shapes[i]}</span> ${opt}`;
+    container.appendChild(div);
+  });
+}
+
+// ── Socket ────────────────────────────────────────────────────────────────────
+const socket = io({ transports: ['websocket', 'polling'] });
+
+socket.on('connect', () => socket.emit('register_host'));
+
+socket.on('host_registered', ({ roomCode, phase, players }) => {
+  document.getElementById('room-code-display').textContent = roomCode;
+  totalPlayers = players.length;
+  document.getElementById('pcount').textContent = totalPlayers;
+  renderPlayerGrid(players);
+  checkStartBtn();
+
+  // Load QR
+  fetch('/api/qrcode')
+    .then(r => r.json())
+    .then(d => {
+      document.getElementById('qr-img').src  = d.qr;
+      document.getElementById('qr-url').textContent = d.url;
+    });
+
+  if (phase !== 'waiting') showView('game');
+});
+
+socket.on('player_joined', ({ players }) => {
+  totalPlayers = players.length;
+  document.getElementById('pcount').textContent = totalPlayers;
+  renderPlayerGrid(players);
+  checkStartBtn();
+});
+
+socket.on('game_start', () => {
+  showView('game');
+  setTimer(20);
+  document.getElementById('ans-count').textContent = '0';
+  document.getElementById('dist-bars').innerHTML   = '';
+});
+
+socket.on('question_start', ({ index, total, celebrity, question, options, photoUrl }) => {
+  currentOptions = options;
+  document.getElementById('q-tag').textContent       = `Q ${index+1}/${total}`;
+  document.getElementById('h-celeb-name').textContent = celebrity;
+  document.getElementById('h-q-text').textContent     = question;
+
+  const img = document.getElementById('h-celeb-photo');
+  img.src = photoUrl || '';
+
+  renderOptions(options, -1); // No correct shown yet
+  document.getElementById('ans-count').textContent = '0';
+  document.getElementById('dist-bars').innerHTML   = '';
+  setTimer(20);
+  showView('game');
+});
+
+socket.on('timer_tick', ({ timeLeft }) => setTimer(timeLeft));
+
+socket.on('answer_update', ({ distribution }) => {
+  const total = distribution.reduce((a,b) => a+b, 0);
+  document.getElementById('ans-count').textContent = total;
+  updateDistBars(distribution);
+});
+
+socket.on('question_end', ({ correctIndex, fact, scores }) => {
+  renderOptions(currentOptions, correctIndex);
+  setTimeout(() => {
+    renderLb(scores, document.getElementById('h-lb-list'));
+    showView('leaderboard');
+  }, 3000);
+});
+
+socket.on('game_over', ({ leaderboard }) => {
+  renderLb(leaderboard, document.getElementById('go-lb'));
+  showView('gameover');
+  launchConfetti();
+});
+
+socket.on('game_reset', ({ roomCode }) => {
+  document.getElementById('room-code-display').textContent = roomCode;
+  totalPlayers = 0;
+  document.getElementById('pcount').textContent = 0;
+  renderPlayerGrid([]);
+  checkStartBtn();
+  showView('lobby');
+
+  // Reload QR for new room code
+  fetch('/api/qrcode')
+    .then(r => r.json())
+    .then(d => {
+      document.getElementById('qr-img').src  = d.qr;
+      document.getElementById('qr-url').textContent = d.url;
+    });
+});
+
+// ── Buttons ───────────────────────────────────────────────────────────────────
+function checkStartBtn() {
+  document.getElementById('btn-start').disabled = totalPlayers < 1;
+  document.getElementById('start-hint').textContent =
+    totalPlayers < 1 ? 'Besoin d\'au moins 1 joueur pour commencer' : `${totalPlayers} joueur(s) prêt(s) — GO !`;
+}
+
+document.getElementById('btn-start').addEventListener('click', () => {
+  socket.emit('start_game');
+});
+document.getElementById('btn-reset').addEventListener('click', () => {
+  if (confirm('Réinitialiser la partie ? Tous les scores seront perdus.')) {
+    socket.emit('reset_game');
+  }
+});
+document.getElementById('btn-new-game').addEventListener('click', () => {
+  socket.emit('reset_game');
+});
+
+// ── Confetti ─────────────────────────────────────────────────────────────────
+function launchConfetti() {
+  const canvas  = document.getElementById('confetti-canvas');
+  const ctx     = canvas.getContext('2d');
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  canvas.style.display = 'block';
+
+  const particles = Array.from({length: 180}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height - canvas.height,
+    w: Math.random() * 14 + 4, h: Math.random() * 7 + 3,
+    color: ['#f1c40f','#c0392b','#3498db','#2ecc71','#9b59b6','#fff'][Math.floor(Math.random()*6)],
+    vy: Math.random() * 4 + 2,
+    vx: (Math.random() - .5) * 3,
+    rot: Math.random() * 360,
+    drot: (Math.random() - .5) * 5
+  }));
+
+  let frames = 0;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.y += p.vy; p.x += p.vx; p.rot += p.drot;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot * Math.PI / 180);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      ctx.restore();
+      if (p.y > canvas.height) { p.y = -20; p.x = Math.random() * canvas.width; }
+    });
+    frames++;
+    if (frames < 400) requestAnimationFrame(draw);
+    else canvas.style.display = 'none';
+  }
+  draw();
+}
+
+// ── Avatar preload ────────────────────────────────────────────────────────────
+fetch('/api/avatars')
+  .then(r => r.json())
+  .then(d => { avatarList = d.avatars; });
+</script>
+</body>
+</html>
