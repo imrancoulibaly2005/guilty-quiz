@@ -82,59 +82,71 @@ input[type=text]::placeholder { color: #aaa; }
 .avatar-card {
   position: relative;
   cursor: pointer;
-  border-radius: 10px;
-  overflow: hidden;
+  border-radius: 12px;
   border: 3px solid #ddd;
   transition: border-color .2s, transform .15s, box-shadow .2s;
   background: #fff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.avatar-card .av-img-wrap {
+  width: 100%;
   aspect-ratio: 3/4;
+  overflow: hidden;
 }
 .avatar-card img {
   width: 100%; height: 100%;
   object-fit: cover; display: block;
-  transition: opacity .2s;
+  transition: transform .2s;
 }
+.avatar-card:hover:not(.taken) img { transform: scale(1.04); }
+
+/* Label SOUS la photo, toujours visible */
 .avatar-card .av-label {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  background: rgba(255,255,255,.88);
+  background: #fff;
   color: #111;
-  font-size: .62rem;
+  font-size: .75rem;
   font-weight: 700;
   text-align: center;
-  padding: 4px 4px 5px;
+  padding: 6px 6px 7px;
   line-height: 1.2;
   text-transform: uppercase;
   letter-spacing: .5px;
+  border-top: 1px solid #eee;
+  flex-shrink: 0;
 }
 .avatar-card:hover:not(.taken) {
   border-color: var(--red2);
-  transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(192,57,43,.25);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(192,57,43,.25);
 }
 .avatar-card.selected {
   border-color: var(--red);
-  box-shadow: 0 0 0 2px var(--red), 0 6px 20px rgba(192,57,43,.3);
-  transform: translateY(-3px);
+  box-shadow: 0 0 0 3px var(--red), 0 8px 24px rgba(192,57,43,.35);
+  transform: translateY(-4px);
 }
 .avatar-card.selected::after {
   content: '✓';
-  position: absolute; top: 6px; right: 8px;
+  position: absolute; top: 8px; right: 8px;
   background: var(--red); color: #fff;
-  width: 22px; height: 22px;
+  width: 28px; height: 28px;
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: .9rem; font-weight: 900;
+  font-size: 1rem; font-weight: 900;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+  z-index: 3;
 }
 .avatar-card.taken {
   cursor: not-allowed;
-  filter: grayscale(.8) brightness(.85);
+  filter: grayscale(.85) brightness(.8);
 }
 .avatar-card.taken::before {
   content: '🔒';
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.6rem; z-index: 2;
+  font-size: 2rem; z-index: 2;
+  background: rgba(255,255,255,.5);
 }
 
 /* ── Polaroid ── */

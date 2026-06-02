@@ -18,16 +18,17 @@
                   letter-spacing: 1px; color: var(--gray); margin-bottom: 6px; }
 
   /* Avatar grid */
-  .av-section { width: 100%; max-width: 480px; }
-  .av-section h3 { font-size: .8rem; font-weight: 700; text-transform: uppercase;
-                    letter-spacing: 1px; color: var(--gray); margin-bottom: 10px; }
+  .av-section { width: 100%; max-width: 520px; }
+  .av-section h3 {
+    font-size: .8rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--gray); margin-bottom: 12px;
+  }
   .av-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
-  @media (min-width: 400px) { .av-grid { grid-template-columns: repeat(4, 1fr); } }
-  @media (min-width: 520px) { .av-grid { grid-template-columns: repeat(5, 1fr); } }
+  @media (min-width: 480px) { .av-grid { grid-template-columns: repeat(3, 1fr); } }
 
   .taken-notice {
     display: none;
@@ -187,7 +188,9 @@ function renderGrid() {
     card.className = 'avatar-card' + (isTaken ? ' taken' : '') + (av.id === selectedAvatarId ? ' selected' : '');
     card.dataset.id = av.id;
     card.innerHTML = `
-      <img src="/avatars/${av.file}" alt="${av.label}" loading="lazy">
+      <div class="av-img-wrap">
+        <img src="/avatars/${av.file}" alt="${av.label}" loading="lazy">
+      </div>
       <div class="av-label">${av.label}</div>
     `;
     if (!isTaken) {
