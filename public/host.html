@@ -233,8 +233,11 @@
   </button>
 </div>
 
-<!-- Reset (always visible during game) -->
-<button id="btn-reset" class="btn btn-ghost" style="display:none;">🔄 Reset</button>
+<!-- Boutons flottants pendant la partie -->
+<div id="floating-btns" style="display:none;position:fixed;bottom:16px;right:16px;z-index:50;display:none;flex-direction:column;gap:8px;align-items:flex-end;">
+  <button id="btn-end-quiz" class="btn" style="background:#8e44ad;font-size:1rem;padding:10px 18px;letter-spacing:1px;">⏹ FIN DU QUIZ</button>
+  <button id="btn-reset"    class="btn btn-ghost" style="font-size:.9rem;padding:8px 14px;opacity:.7;">🔄 Reset</button>
+</div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
@@ -373,6 +376,7 @@ socket.on('player_joined', ({ players }) => {
 
 socket.on('game_start', () => {
   showView('game');
+  showFloatingBtns(true);
   setTimer(20);
   document.getElementById('ans-count').textContent = '0';
   document.getElementById('dist-bars').innerHTML   = '';
@@ -413,10 +417,12 @@ socket.on('question_end', ({ correctIndex, fact, scores }) => {
 socket.on('game_over', ({ leaderboard }) => {
   renderLb(leaderboard, document.getElementById('go-lb'));
   showView('gameover');
+  showFloatingBtns(false);
   launchConfetti();
 });
 
 socket.on('game_reset', ({ roomCode }) => {
+  showFloatingBtns(false);
   document.getElementById('room-code-display').textContent = roomCode;
   totalPlayers = 0;
   document.getElementById('pcount').textContent = 0;
@@ -446,11 +452,20 @@ document.getElementById('btn-start').addEventListener('click', () => {
 document.getElementById('btn-skip').addEventListener('click', () => {
   socket.emit('skip_question');
 });
+document.getElementById('btn-end-quiz').addEventListener('click', () => {
+  if (confirm('Terminer le quiz maintenant et afficher le classement final ?')) {
+    socket.emit('force_end_quiz');
+  }
+});
 document.getElementById('btn-reset').addEventListener('click', () => {
   if (confirm('Réinitialiser la partie ? Tous les scores seront perdus.')) {
     socket.emit('reset_game');
   }
 });
+
+function showFloatingBtns(visible) {
+  document.getElementById('floating-btns').style.display = visible ? 'flex' : 'none';
+}
 document.getElementById('btn-new-game').addEventListener('click', () => {
   socket.emit('reset_game');
 });

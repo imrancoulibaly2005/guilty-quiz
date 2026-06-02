@@ -254,6 +254,13 @@ io.on('connection', socket => {
     revealQuestion();
   });
 
+  // ── Host : fin forcée du quiz ──
+  socket.on('force_end_quiz', () => {
+    if (socket.id !== hostSocketId) return;
+    clearInterval(game.timer);
+    endGame();
+  });
+
   // ── Host : reset ──
   socket.on('reset_game', () => {
     if (socket.id !== hostSocketId) return;
