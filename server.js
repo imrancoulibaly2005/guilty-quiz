@@ -136,7 +136,7 @@ function revealQuestion() {
     game.qIdx++;
     if (game.qIdx >= QUESTIONS.length) endGame();
     else startQuestion();
-  }, 8000);
+  }, 16000); // 16s : laisse le temps de lire la réponse + le classement
 }
 
 function endGame() {

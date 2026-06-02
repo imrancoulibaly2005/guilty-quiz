@@ -250,11 +250,11 @@
 <!-- Audio jingle -->
 <audio id="jingle" src="/jingle.mp3" loop preload="auto"></audio>
 
-<!-- Contrôle audio flottant (toujours visible) -->
+<!-- Contrôle audio flottant — coin haut gauche pour ne pas cacher le contenu -->
 <div id="audio-ctrl" style="
-  position:fixed; bottom:16px; left:16px; z-index:100;
+  position:fixed; top:12px; left:12px; z-index:100;
   background:#fff; border:2px solid #ddd; border-radius:12px;
-  padding:10px 14px; display:flex; align-items:center; gap:10px;
+  padding:8px 12px; display:flex; align-items:center; gap:10px;
   box-shadow:0 4px 16px rgba(0,0,0,.15); font-family:'DM Sans',sans-serif;
 ">
   <button id="btn-play" onclick="toggleAudio()" style="
@@ -458,12 +458,12 @@ socket.on('question_end', ({ correctIndex, fact, scores }) => {
   factEl.innerHTML = `<strong>📖 Le saviez-vous ?</strong><br>${fact}`;
   factEl.style.display = 'block';
 
-  // Basculer au classement après 6s (laisse le temps de voir la réponse)
+  // Basculer au classement après 10s (laisse le temps de lire réponse + fait)
   setTimeout(() => {
     if (factEl) factEl.style.display = 'none';
     renderLb(scores, document.getElementById('h-lb-list'));
     showView('leaderboard');
-  }, 6000);
+  }, 10000);
 });
 
 socket.on('game_over', ({ leaderboard }) => {

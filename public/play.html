@@ -445,7 +445,7 @@ socket.on('question_end', ({ correctIndex, fact, scores }) => {
   const me = scores.find(p => p.nickname === myNickname);
   if (me) { myScore = me.score; sessionStorage.setItem('gq_score', myScore); }
 
-  // ── 2. Après 3s : écran de révélation ──
+  // ── 2. Après 5s : écran de révélation ──
   setTimeout(() => {
     const wasCorrect  = myLastAnswer !== null && myLastAnswer === correctIndex;
     const correctText = currentOptions[correctIndex] || '';
@@ -463,12 +463,12 @@ socket.on('question_end', ({ correctIndex, fact, scores }) => {
 
     show('reveal');
 
-    // ── 3. Classement après 5s ──
+    // ── 3. Classement après 6s ──
     setTimeout(() => {
       renderLb(scores, 'lb-rows');
       show('leaderboard');
-    }, 5000);
-  }, 3000);
+    }, 6000);
+  }, 5000);
 });
 
 socket.on('game_over', ({ leaderboard }) => {
