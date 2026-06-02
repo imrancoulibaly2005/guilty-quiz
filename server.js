@@ -246,6 +246,14 @@ io.on('connection', socket => {
     }
   });
 
+  // ── Host : skip question ──
+  socket.on('skip_question', () => {
+    if (socket.id !== hostSocketId) return;
+    if (game.phase !== 'question') return;
+    clearInterval(game.timer);
+    revealQuestion();
+  });
+
   // ── Host : reset ──
   socket.on('reset_game', () => {
     if (socket.id !== hostSocketId) return;

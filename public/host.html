@@ -186,6 +186,9 @@
         </svg>
         <div id="h-timer-num" class="timer-num" style="font-size:1.4rem;">20</div>
       </div>
+      <button id="btn-skip" class="btn btn-ghost" style="font-size:1rem;padding:8px 18px;letter-spacing:1px;">
+        ⏭ SKIP
+      </button>
       <div class="answer-count">
         <span id="ans-count">0</span><small>réponses</small>
       </div>
@@ -439,6 +442,9 @@ function checkStartBtn() {
 
 document.getElementById('btn-start').addEventListener('click', () => {
   socket.emit('start_game');
+});
+document.getElementById('btn-skip').addEventListener('click', () => {
+  socket.emit('skip_question');
 });
 document.getElementById('btn-reset').addEventListener('click', () => {
   if (confirm('Réinitialiser la partie ? Tous les scores seront perdus.')) {
