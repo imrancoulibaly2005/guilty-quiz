@@ -94,7 +94,20 @@
   .host-opt.C { background: rgba(243,156,18,.2);  border: 1px solid #f39c12; }
   .host-opt.D { background: rgba(39,174,96,.2);   border: 1px solid #27ae60; }
   .host-opt .shape { font-size: 1rem; }
-  .host-opt.correct-opt { font-weight: 900; filter: brightness(1.3); }
+  .host-opt.correct-opt {
+    font-weight: 900;
+    background: rgba(39,174,96,.25) !important;
+    border-color: #27ae60 !important;
+    border-width: 3px !important;
+    font-size: 1.05rem;
+    position: relative;
+  }
+  .host-opt.correct-opt::after {
+    content: '✅ BONNE RÉPONSE';
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    font-size: .75rem; font-weight: 900; color: #27ae60;
+    letter-spacing: 1px;
+  }
 
   /* Timer + answer count */
   .host-status-row { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
@@ -431,11 +444,26 @@ socket.on('answer_update', ({ distribution }) => {
 });
 
 socket.on('question_end', ({ correctIndex, fact, scores }) => {
+  // Afficher immédiatement la bonne réponse sur l'écran de jeu
   renderOptions(currentOptions, correctIndex);
+
+  // Afficher aussi le fait en bas de l'écran host
+  let factEl = document.getElementById('h-fact-box');
+  if (!factEl) {
+    factEl = document.createElement('div');
+    factEl.id = 'h-fact-box';
+    factEl.style.cssText = 'background:#e8f8ee;border:2px solid #27ae60;border-radius:8px;padding:12px 16px;font-size:.9rem;color:#1a5c2e;margin-top:10px;line-height:1.5;';
+    document.getElementById('v-game').appendChild(factEl);
+  }
+  factEl.innerHTML = `<strong>📖 Le saviez-vous ?</strong><br>${fact}`;
+  factEl.style.display = 'block';
+
+  // Basculer au classement après 6s (laisse le temps de voir la réponse)
   setTimeout(() => {
+    if (factEl) factEl.style.display = 'none';
     renderLb(scores, document.getElementById('h-lb-list'));
     showView('leaderboard');
-  }, 3000);
+  }, 6000);
 });
 
 socket.on('game_over', ({ leaderboard }) => {
