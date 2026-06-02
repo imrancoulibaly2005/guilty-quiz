@@ -288,4 +288,14 @@ server.listen(PORT, () => {
   console.log(`\n🎯 GUILTY? démarré sur le port ${PORT}`);
   console.log(`   Host : ${PUBLIC_URL}/host`);
   console.log(`   Join : ${PUBLIC_URL}/join\n`);
+
+  // Keep-alive : se ping toutes les 14 min pour éviter le spin-down Render
+  if (process.env.PUBLIC_URL) {
+    setInterval(() => {
+      fetch(`${PUBLIC_URL}/health`)
+        .then(() => console.log('[keep-alive] ping OK'))
+        .catch(() => {});
+    }, 14 * 60 * 1000);
+    console.log('   Keep-alive actif (ping /health toutes les 14 min)\n');
+  }
 });
