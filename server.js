@@ -1,10 +1,14 @@
-const express    = require('express');
+const express         = require('express');
 const { createServer } = require('http');
-const { Server }  = require('socket.io');
-const QRCode      = require('qrcode');
-const path        = require('path');
-const QUESTIONS   = require('./questions');
-const AVATARS     = require('./avatars');
+const { Server }      = require('socket.io');
+const QRCode          = require('qrcode');
+const path            = require('path');
+const QUESTIONS       = require('./questions');
+const AVATARS         = require('./avatars');
+const fetchWikiPhoto  = require('./utils/fetchWikiPhoto');
+
+// Cache des photos Wikipedia { questionId → url }
+const photoCache = {};
 
 const PORT       = process.env.PORT       || 3000;
 const PUBLIC_URL = process.env.PUBLIC_URL || `http://localhost:${PORT}`;
@@ -107,7 +111,7 @@ function startQuestion() {
     celebrity: q.celebrity,
     question:  q.question,
     options:   q.options,
-    photoUrl:  `/celebrities/${q.photoFile}`
+    photoUrl:  photoCache[q.id] || null
   });
 
   game.timer = setInterval(() => {
@@ -209,7 +213,7 @@ io.on('connection', socket => {
       socket.emit('question_start', {
         id: q.id, index: game.qIdx, total: QUESTIONS.length,
         celebrity: q.celebrity, question: q.question, options: q.options,
-        photoUrl: `/celebrities/${q.photoFile}`
+        photoUrl: photoCache[q.id] || null
       });
       socket.emit('timer_tick', { timeLeft: game.timeLeft });
       if (player.answered) socket.emit('already_answered', {});
@@ -309,11 +313,27 @@ io.on('connection', socket => {
   });
 });
 
+// ─── Pré-chargement des photos Wikipedia ─────────────────────────────────────
+async function prefetchPhotos() {
+  console.log('\n📸 Chargement des photos Wikipedia...');
+  await Promise.all(QUESTIONS.map(async q => {
+    const url = await fetchWikiPhoto(q.wikipediaTitle);
+    if (url) {
+      photoCache[q.id] = url;
+      console.log(`  ✅ ${q.celebrity}`);
+    } else {
+      console.log(`  ❌ ${q.celebrity} — photo introuvable`);
+    }
+  }));
+  console.log('📸 Photos prêtes.\n');
+}
+
 // ─── Démarrage ───────────────────────────────────────────────────────────────
-server.listen(PORT, () => {
+server.listen(PORT, async () => {
   console.log(`\n🎯 GUILTY? démarré sur le port ${PORT}`);
   console.log(`   Host : ${PUBLIC_URL}/host`);
   console.log(`   Join : ${PUBLIC_URL}/join\n`);
+  await prefetchPhotos();
 
   if (process.env.PUBLIC_URL) {
     setInterval(() => {

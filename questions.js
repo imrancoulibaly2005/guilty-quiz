@@ -1,283 +1,284 @@
-// questions.js — 20 questions avec photos locales
+// questions.js — Version 2 — 20 nouvelles questions
+// Les photos sont récupérées automatiquement via l'API Wikipedia au démarrage
 module.exports = [
   {
     id: 1,
-    celebrity: "Sean 'Diddy' Combs",
-    photoFile: "celeb1.jpg",
-    question: "What was Sean 'Diddy' Combs arrested for in September 2024?",
+    celebrity: "Harvey Weinstein",
+    wikipediaTitle: "Harvey_Weinstein",
+    question: "Harvey Weinstein was convicted of what crime in February 2020?",
     options: [
-      "Tax evasion and corporate fraud",
-      "Sex trafficking and racketeering",
-      "Armed robbery at a casino",
-      "International narcotics trafficking"
+      "Tax fraud and money laundering",
+      "Kidnapping and false imprisonment",
+      "Rape and criminal sexual assault",
+      "Bribery of Hollywood executives"
     ],
-    correct: 1,
-    fact: "Indicted on federal charges of sex trafficking, racketeering, and transportation for prostitution."
+    correct: 2,
+    fact: "Convicted on 2 counts including rape in the third degree. Sentenced to 23 years. A later 2023 retrial added additional convictions."
   },
   {
     id: 2,
-    celebrity: "Karim Benzema",
-    photoFile: "celeb2.jpg",
-    question: "What was Karim Benzema convicted for in France in 2021?",
+    celebrity: "R. Kelly",
+    wikipediaTitle: "R._Kelly",
+    question: "R. Kelly was found guilty on all 9 counts in 2021. What were the main charges?",
     options: [
-      "Doping and using illegal substances",
-      "Tax fraud via offshore bank accounts",
-      "Physical assault after a nightclub brawl",
-      "Complicity in an attempted blackmail scheme"
+      "Drug trafficking and possession",
+      "Tax evasion across multiple states",
+      "Sex trafficking and racketeering",
+      "Aggravated assault and battery"
     ],
-    correct: 3,
-    fact: "He received a one-year suspended prison sentence for his involvement in the 2015 sex-tape blackmail scandal against Mathieu Valbuena."
+    correct: 2,
+    fact: "Convicted in September 2021 of sex trafficking minors and racketeering. Sentenced to 30 years in federal prison."
   },
   {
     id: 3,
-    celebrity: "Donald Trump",
-    photoFile: "celeb3.webp",
-    question: "What was Donald Trump found guilty of 34 felony counts for in 2024?",
+    celebrity: "Bill Cosby",
+    wikipediaTitle: "Bill_Cosby",
+    question: "Bill Cosby was convicted in 2018 on what charges?",
     options: [
-      "Falsifying business records",
-      "Obstruction of justice",
-      "Illegal foreign espionage",
-      "Corporate tax evasion"
+      "Sexual harassment at NBC",
+      "Aggravated indecent assault",
+      "Rape with controlled substances",
+      "Child endangerment"
     ],
-    correct: 0,
-    fact: "A New York jury convicted him on all 34 counts of falsifying business records to conceal a hush money payment made before the 2016 election."
+    correct: 1,
+    fact: "Convicted of 3 counts of aggravated indecent assault. Sentenced to 3–10 years. Released in 2021 on a technicality — his conviction was overturned."
   },
   {
     id: 4,
-    celebrity: "Tory Lanez",
-    photoFile: "celeb4.jpg",
-    question: "What was rapper Tory Lanez sentenced to 10 years in prison for in 2023?",
+    celebrity: "Oscar Pistorius",
+    wikipediaTitle: "Oscar_Pistorius",
+    question: "Olympic runner Oscar Pistorius was ultimately convicted of what for killing Reeva Steenkamp?",
     options: [
-      "Trafficking illegal firearms",
-      "Conspiracy to commit fraud",
-      "Shooting Megan Thee Stallion",
-      "Armed robbery in Los Angeles"
+      "Culpable homicide (manslaughter)",
+      "Attempted murder",
+      "Murder",
+      "Negligent homicide"
     ],
     correct: 2,
-    fact: "He was found guilty of assault with a semiautomatic firearm for shooting her in the feet during an argument in 2020."
+    fact: "Initially convicted of culpable homicide in 2014, upgraded to MURDER on appeal in 2015. Shot his girlfriend through a locked bathroom door on Valentine's Day 2013."
   },
   {
     id: 5,
-    celebrity: "Gérard Depardieu",
-    photoFile: "celeb5.jpg",
-    question: "What was French actor Gérard Depardieu formally charged with?",
+    celebrity: "Tiger Woods",
+    wikipediaTitle: "Tiger_Woods",
+    question: "Tiger Woods was found asleep at the wheel and arrested for what in 2017?",
     options: [
-      "International weapons smuggling",
-      "Aggravated domestic violence",
-      "Tax evasion and asset hiding",
-      "Sexual assault and harassment"
+      "Reckless driving",
+      "Assault on a police officer",
+      "DUI — driving under the influence",
+      "Illegal possession of prescription drugs"
     ],
-    correct: 3,
-    fact: "The legendary French actor has faced multiple formal indictments and lawsuits regarding sexual assault and harassment on movie sets."
+    correct: 2,
+    fact: "Found unconscious in his Mercedes at 3 AM. Tested positive for multiple prescription medications including Vicodin and Xanax. No alcohol in his system."
   },
   {
     id: 6,
-    celebrity: "Young Thug",
-    photoFile: "celeb6.webp",
-    question: "What was rapper Young Thug arrested for in Georgia in 2022?",
+    celebrity: "Lance Armstrong",
+    wikipediaTitle: "Lance_Armstrong",
+    question: "Lance Armstrong was stripped of all 7 Tour de France titles because of what?",
     options: [
-      "Racketeering and gang conspiracy",
-      "First-degree murder charges",
-      "Large-scale narcotics distribution",
-      "Multi-million dollar crypto fraud"
+      "Bribing race officials",
+      "Using illegal bicycle components",
+      "Orchestrating the most sophisticated doping program in sports history",
+      "Match fixing"
     ],
-    correct: 0,
-    fact: "He was arrested in a massive RICO gang indictment targeting his label YSL, leading to one of the longest criminal trials in Georgia history."
+    correct: 2,
+    fact: "USADA found he led a massive blood doping scheme involving EPO, blood transfusions and testosterone. He finally admitted the truth on Oprah in 2013."
   },
   {
     id: 7,
-    celebrity: "Amber Heard",
-    photoFile: "celeb7.jpg",
-    question: "What was Amber Heard found liable for in 2022 against Johnny Depp?",
+    celebrity: "Mike Tyson",
+    wikipediaTitle: "Mike_Tyson",
+    question: "Mike Tyson was convicted of rape in 1992 and sentenced to how many years?",
     options: [
-      "Aggravated physical assault",
-      "Defamation over abuse claims",
-      "Attempted grand larceny",
-      "Leaking illegal substances"
+      "3 years",
+      "6 years",
+      "10 years",
+      "15 years"
     ],
     correct: 1,
-    fact: "The Virginia jury ruled that her Washington Post op-ed defamed Johnny Depp, ordering her to pay millions in civil damages."
+    fact: "Sentenced to 6 years in prison for the rape of Desiree Washington. He served 3 years before being released on parole in 1995."
   },
   {
     id: 8,
-    celebrity: "Alec Baldwin",
-    photoFile: "celeb8.jpg",
-    question: "What was actor Alec Baldwin indicted for in 2024?",
+    celebrity: "O. J. Simpson",
+    wikipediaTitle: "O._J._Simpson",
+    question: "O.J. Simpson was acquitted of murder in 1995 but convicted of what crime in 2008?",
     options: [
-      "Illegal possession of firearms",
-      "Aggravated assault on a producer",
-      "Involuntary manslaughter on set",
-      "Corporate tax fraud evasion"
+      "Tax evasion",
+      "Domestic violence",
+      "Armed robbery and kidnapping",
+      "Drug trafficking"
     ],
     correct: 2,
-    fact: "He was charged following the fatal 2021 shooting of cinematographer Halyna Hutchins on the set of the Western movie 'Rust'."
+    fact: "13 years after his infamous murder acquittal, he was convicted of armed robbery in Las Vegas for trying to steal sports memorabilia. Sentenced to 33 years."
   },
   {
     id: 9,
-    celebrity: "Shakira",
-    photoFile: "celeb9.jpg",
-    question: "What did singer Shakira settle a major case with Spanish authorities for in 2023?",
+    celebrity: "Martha Stewart",
+    wikipediaTitle: "Martha_Stewart",
+    question: "TV personality Martha Stewart went to prison in 2004. What was she convicted of?",
     options: [
-      "Plagiarism of a hit pop song",
-      "Illegal employment of staff",
-      "Multi-million euro tax fraud",
-      "Political bribery and corruption"
+      "Tax fraud and asset hiding",
+      "Obstruction of justice and lying to investigators",
+      "Embezzlement from her own company",
+      "Bribery of a government official"
     ],
-    correct: 2,
-    fact: "She reached a last-minute deal with Spanish prosecutors, avoiding prison by admitting she failed to pay 14.5 million euros in taxes."
+    correct: 1,
+    fact: "Convicted for lying to investigators about a suspicious stock sale. Served 5 months in prison and 5 months under house arrest — and came back stronger than ever."
   },
   {
     id: 10,
-    celebrity: "Kylian Mbappé",
-    photoFile: "celeb10.webp",
-    question: "What was Kylian Mbappé the subject of an investigation for in Sweden in 2024?",
+    celebrity: "Bernie Madoff",
+    wikipediaTitle: "Bernie_Madoff",
+    question: "Bernie Madoff ran the largest what in US history, defrauding thousands of investors?",
     options: [
-      "Illegal sports doping",
-      "Alleged sexual assault",
-      "Tax fraud and evasion",
-      "Narcotics smuggling"
+      "Pyramid scheme",
+      "Ponzi scheme",
+      "Insider trading network",
+      "International money laundering ring"
     ],
     correct: 1,
-    fact: "Swedish prosecutors opened a rape investigation following his private trip to Stockholm, though the case lacked evidence and was quickly dropped."
+    fact: "His Ponzi scheme caused an estimated $65 BILLION in losses. Sentenced to 150 years in 2009. Died in prison in 2021 at age 82."
   },
   {
     id: 11,
-    celebrity: "Danny Masterson",
-    photoFile: "celeb11.jpg",
-    question: "What was actor Danny Masterson sentenced to 30 years in prison for in 2023?",
+    celebrity: "Jordan Belfort",
+    wikipediaTitle: "Jordan_Belfort",
+    question: "The real Wolf of Wall Street, Jordan Belfort, was convicted of what in 1999?",
     options: [
-      "International drug trafficking",
-      "First-degree contract murder",
-      "The forcible rape of two women",
-      "Large-scale investment fraud"
+      "Bank robbery and extortion",
+      "Insider trading",
+      "Securities fraud and money laundering",
+      "Tax evasion and bribery"
     ],
     correct: 2,
-    fact: "The 'That 70s Show' actor was convicted of two counts of forcible rape that took place at his Hollywood hills home between 2001 and 2003."
+    fact: "Ran a pump-and-dump scheme defrauding investors of $200 million. Only served 22 months after cooperating with the FBI. His story became a Scorsese film in 2013."
   },
   {
     id: 12,
-    celebrity: "Kanye West",
-    photoFile: "celeb12.webp",
-    question: "Why was Kanye West (Ye) dropped by Adidas and restricted on social media in 2022?",
+    celebrity: "Chris Brown",
+    wikipediaTitle: "Chris_Brown",
+    question: "Chris Brown pleaded guilty to felony assault in 2009. Who was the victim?",
     options: [
-      "Repeated public antisemitic remarks",
-      "Unpaid corporate taxes and fraud",
-      "Physical assault against a reporter",
-      "Plagiarism of a shoe design line"
+      "Jennifer Lopez",
+      "Beyoncé",
+      "Rihanna",
+      "Ciara"
     ],
-    correct: 0,
-    fact: "His public rants and antisemitic statements led major corporate partners like Adidas and Balenciaga to instantly terminate their contracts."
+    correct: 2,
+    fact: "Assaulted Rihanna hours before the 2009 Grammy Awards. She showed up with severe visible injuries. Sentenced to 5 years probation and community service."
   },
   {
     id: 13,
-    celebrity: "Nicolas Sarkozy",
-    photoFile: "celeb13.jpg",
-    question: "What was former French president Nicolas Sarkozy definitively convicted for in 2023?",
+    celebrity: "6ix9ine",
+    wikipediaTitle: "6ix9ine",
+    question: "Rapper Tekashi 6ix9ine avoided a long sentence by doing what in 2019?",
     options: [
-      "Illegal foreign policy influence",
-      "Electoral fraud and espionage",
-      "Corruption and influence peddling",
-      "Tax evasion and money laundering"
+      "Paying $10 million in compensation",
+      "Entering a witness protection program",
+      "Testifying against his own gang members",
+      "Pleading insanity"
     ],
     correct: 2,
-    fact: "The Paris court of appeal upheld his conviction for trying to bribe a magistrate in exchange for inside information about a separate legal probe."
+    fact: "Facing 47 years, he cooperated with federal prosecutors and testified against Nine Trey Gangsta Bloods gang members, including his own friends. Released after 2 years."
   },
   {
     id: 14,
-    celebrity: "Andrew Tate",
-    photoFile: "celeb14.jpg",
-    question: "What was internet personality Andrew Tate arrested for in Romania in 2022?",
+    celebrity: "Jussie Smollett",
+    wikipediaTitle: "Jussie_Smollett",
+    question: "Empire actor Jussie Smollett was convicted in 2021 for what?",
     options: [
-      "Tax fraud and financial scams",
-      "Human trafficking and sex rings",
-      "Illegal narcotics distribution",
-      "Cyber spying and data hacking"
+      "Tax fraud",
+      "Drug possession",
+      "Staging a fake hate crime and lying to police",
+      "Assault on a crew member"
     ],
-    correct: 1,
-    fact: "He and his brother Tristan were detained under allegations of human trafficking, rape, and forming an organized criminal network."
+    correct: 2,
+    fact: "Claimed he was attacked in a racist and homophobic assault in Chicago. Police discovered he had PAID two men to fake the attack. Convicted on 5 felony counts."
   },
   {
     id: 15,
-    celebrity: "YoungBoy Never Broke Again",
-    photoFile: "celeb15.jpg",
-    question: "What was rapper NBA YoungBoy arrested for in 2021?",
+    celebrity: "Phil Spector",
+    wikipediaTitle: "Phil_Spector",
+    question: "Legendary music producer Phil Spector was convicted in 2009 of murdering which actress?",
     options: [
-      "Armed robbery at a store",
-      "Illegal possession of firearms",
-      "Identity theft and bank fraud",
-      "Conspiracy to commit assault"
+      "Sharon Tate",
+      "Natalie Wood",
+      "Lana Clarkson",
+      "Dorothy Stratten"
     ],
-    correct: 1,
-    fact: "He was arrested by federal agents in Los Angeles following a dramatic foot chase, stemming from an outstanding warrant for illegal gun possession."
+    correct: 2,
+    fact: "Shot actress Lana Clarkson at his mansion in 2003. Convicted of second-degree murder. Died of COVID-19 in prison in 2021 at age 81."
   },
   {
     id: 16,
-    celebrity: "Ezra Miller",
-    photoFile: "celeb16.webp",
-    question: "What was actor Ezra Miller (The Flash) arrested for in Hawaii in 2022?",
+    celebrity: "Justin Bieber",
+    wikipediaTitle: "Justin_Bieber",
+    question: "Justin Bieber was arrested in Miami in January 2014 for what?",
     options: [
-      "Disorderly conduct and assault",
-      "International drug smuggling",
-      "Grand larceny and credit fraud",
-      "Aggravated sexual misconduct"
+      "Drug trafficking",
+      "DUI and drag racing",
+      "Assault on a bodyguard",
+      "Criminal damage to property"
     ],
-    correct: 0,
-    fact: "They were arrested multiple times in Hawaii for physical altercations, disorderly conduct at a karaoke bar, and second-degree assault."
+    correct: 1,
+    fact: "Arrested at 4 AM driving a Lamborghini drunk, high on marijuana, and with an expired license. Blood alcohol was almost twice the legal limit for under-21s."
   },
   {
     id: 17,
-    celebrity: "Peng Shuai",
-    photoFile: "celeb17.jpg",
-    question: "What did tennis player Peng Shuai publicly accuse a Chinese political figure of in 2021?",
+    celebrity: "Kevin Spacey",
+    wikipediaTitle: "Kevin_Spacey",
+    question: "Kevin Spacey was acquitted in a UK trial in 2023 on charges of what?",
     options: [
-      "Financial corruption and bribery",
-      "Electoral fraud and manipulation",
-      "Political influence and tracking",
-      "Aggravated sexual assault charges"
+      "Tax fraud",
+      "Sexual assault against multiple men",
+      "Stalking and harassment",
+      "Producing illegal content"
     ],
-    correct: 3,
-    fact: "Her post on Weibo accusing a top Communist Party leader triggered global concern for her safety after she temporarily disappeared from public life."
+    correct: 1,
+    fact: "Found not guilty on all 9 counts of sexual assault in London in July 2023. However, his career had already been destroyed and he was written out of House of Cards in 2017."
   },
   {
     id: 18,
-    celebrity: "Dr. Luke",
-    photoFile: "celeb18.jpg",
-    question: "Which pop singer took music producer Dr. Luke to court for alleged sexual assault?",
+    celebrity: "Mel Gibson",
+    wikipediaTitle: "Mel_Gibson",
+    question: "Mel Gibson made infamous antisemitic remarks during his arrest for what in 2006?",
     options: [
-      "Billie Eilish",
-      "Ariana Grande",
-      "Kesha",
-      "Taylor Swift"
+      "Drug possession",
+      "Assault on a paparazzo",
+      "Drunk driving (DUI)",
+      "Domestic disturbance"
     ],
     correct: 2,
-    fact: "Kesha filed a high-profile series of lawsuits starting in 2014, alleging years of physical and emotional abuse. They settled out of court in 2023."
+    fact: "Pulled over for speeding at 87mph in Malibu. Blood alcohol nearly twice the legal limit. His rant to officers — 'Jews are responsible for all the wars in the world' — destroyed his Hollywood career."
   },
   {
     id: 19,
-    celebrity: "Nicki Minaj",
-    photoFile: "celeb19.webp",
-    question: "What was Nicki Minaj arrested for in Amsterdam in 2024?",
+    celebrity: "Winona Ryder",
+    wikipediaTitle: "Winona_Ryder",
+    question: "Actress Winona Ryder was convicted in 2002 of what crime at a Saks Fifth Avenue?",
     options: [
-      "Physical assault on airport security",
-      "Tax fraud regarding her concert tour",
-      "Illegal possession of cannabis bags",
-      "Weapons trafficking and concealment"
+      "Fraud and identity theft",
+      "Drug possession",
+      "Shoplifting luxury goods worth $5,500",
+      "Assaulting a security guard"
     ],
     correct: 2,
-    fact: "She was briefly detained at Schiphol Airport by Dutch authorities for carrying pre-rolled cannabis joints in her bags while traveling to a tour stop."
+    fact: "Caught stealing designer clothes and accessories worth $5,500. Sentenced to probation, community service, and fines. Her mugshot became iconic and later inspired memes."
   },
   {
     id: 20,
-    celebrity: "Adam Levine",
-    photoFile: "celeb20.jpg",
-    question: "What major public scandal was Adam Levine (Maroon 5) involved in back in 2022?",
+    celebrity: "Wesley Snipes",
+    wikipediaTitle: "Wesley_Snipes",
+    question: "Blade actor Wesley Snipes served 3 years in prison for what financial crime?",
     options: [
-      "Tax fraud and corporate skimming",
-      "Physical assault against a manager",
-      "Large-scale narcotics smuggling",
-      "Infidelity and inappropriate texts"
+      "Money laundering through film productions",
+      "Securities fraud on Wall Street",
+      "Tax evasion — failing to pay $7 million",
+      "Bank fraud"
     ],
-    correct: 3,
-    fact: "Instagram models leaked flirtatious direct messages sent by the singer, sparking a massive wave of viral memes across TikTok and Twitter."
+    correct: 2,
+    fact: "Failed to file tax returns for years and owed $7 million to the IRS. Reported to prison in 2010 after exhausting all appeals. Released in 2013 and returned to acting."
   }
 ];
