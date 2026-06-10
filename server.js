@@ -148,18 +148,7 @@ function startNextSong(room) {
     category: room.currentSong.category,
     scores: getScores(room),
   });
-
-  // Auto-skip after 30s if no one buzzed correctly
-  room.timer = setInterval(() => {
-    room.timeLeft--;
-    io.to(room.code).emit('timer_tick', { timeLeft: room.timeLeft });
-    if (room.timeLeft <= 0) {
-      clearInterval(room.timer);
-      room.timer = null;
-      // If nobody found, reveal answer
-      revealSong(room, false);
-    }
-  }, 1000);
+  // Timer starts only when host clicks Play (start_timer event)
 }
 
 function revealSong(room, found) {
@@ -273,6 +262,25 @@ io.on('connection', socket => {
     room.players.forEach(p => { p.score = 0; p.buzzCount = 0; p.correctCount = 0; p.delta = 0; });
 
     startNextSong(room);
+  });
+
+  // Host starts timer (triggered by clicking Play)
+  socket.on('start_timer', ({ roomCode }) => {
+    const room = rooms.get(roomCode);
+    if (!room || room.hostSocketId !== socket.id) return;
+    if (room.phase !== 'playing') return;
+    if (room.timer) return; // already running
+    room.timeLeft = ROUND_DURATION;
+    io.to(room.code).emit('timer_tick', { timeLeft: room.timeLeft });
+    room.timer = setInterval(() => {
+      room.timeLeft--;
+      io.to(room.code).emit('timer_tick', { timeLeft: room.timeLeft });
+      if (room.timeLeft <= 0) {
+        clearInterval(room.timer);
+        room.timer = null;
+        revealSong(room, false);
+      }
+    }, 1000);
   });
 
   // Player buzz

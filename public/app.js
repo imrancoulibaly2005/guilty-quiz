@@ -514,10 +514,11 @@ function wireButtons() {
     socket.emit('start_game', { roomCode: state.roomCode, categories: cats });
   });
 
-  // Host: play — load then play so error only triggers on explicit action
+  // Host: play — load audio + start server timer simultaneously
   $('btnPlay').addEventListener('click', () => {
     if (state.currentSong) ytLoad(state.currentSong.youtubeId, state.currentSong.startAt);
     setTimeout(ytPlay, 300);
+    socket.emit('start_timer', { roomCode: state.roomCode });
   });
 
   // Host: stop
