@@ -379,6 +379,54 @@ io.on('connection', socket => {
     startNextSong(room);
   });
 
+  // Rejoin after page refresh
+  socket.on('rejoin_room', ({ roomCode, playerId, isHost }) => {
+    const room = rooms.get(roomCode);
+    if (!room) return socket.emit('rejoin_failed', { message: 'La salle n\'existe plus.' });
+
+    socket.join(roomCode);
+
+    const base = {
+      roomCode,
+      phase: room.phase,
+      players: room.players.map(p => ({ playerId: p.playerId, pseudo: p.pseudo, color: p.color })),
+    };
+
+    const gameState = room.phase === 'playing' && room.currentSong ? {
+      song: { youtubeId: room.currentSong.youtubeId, startAt: room.currentSong.startAt },
+      titleForHost: room.currentSong.title,
+      songIndex: room.songIndex + 1,
+      total: room.playlist.length,
+      category: room.currentSong.category,
+      timeLeft: room.timeLeft,
+      timerRunning: !!room.timer,
+      scores: getScores(room),
+      buzzOrder: room.buzzOrder.map((p, i) => ({
+        playerId: p.playerId, pseudo: p.pseudo, color: p.color,
+        pointsIfCorrect: i === 0 ? 3 : i === 1 ? 2 : 1,
+      })),
+      activeBuzzerId: room.buzzOrder[room.currentBuzzIndex]?.playerId || null,
+    } : {};
+
+    if (isHost) {
+      room.hostSocketId = socket.id;
+      socket.emit('room_rejoined', {
+        ...base, isHost: true, ...gameState,
+        ...(room.phase === 'gameover' ? { podium: getPodium(room) } : {}),
+      });
+    } else {
+      const player = room.players.find(p => p.playerId === playerId);
+      if (!player) return socket.emit('rejoin_failed', { message: 'Joueur introuvable.' });
+      player.socketId = socket.id;
+      const alreadyBuzzed = !!room.buzzOrder.find(p => p.playerId === playerId);
+      socket.emit('room_rejoined', {
+        ...base, isHost: false, playerId, color: player.color, pseudo: player.pseudo,
+        alreadyBuzzed, ...gameState,
+        ...(room.phase === 'gameover' ? { podium: getPodium(room) } : {}),
+      });
+    }
+  });
+
   // Host stops game early
   socket.on('stop_game', ({ roomCode }) => {
     const room = rooms.get(roomCode);

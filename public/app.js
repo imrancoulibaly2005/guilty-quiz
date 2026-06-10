@@ -12,6 +12,18 @@ const ALL_CATEGORIES = [
   { name: '🎌 Anime VF',           count: 8  },
 ];
 
+// ── Session persistence ───────────────────────────────────
+function saveSession() {
+  localStorage.setItem('btSession', JSON.stringify({
+    roomCode:  state.roomCode,
+    playerId:  state.playerId,
+    isHost:    state.isHost,
+    pseudo:    state.pseudo,
+    color:     state.color,
+  }));
+}
+function clearSession() { localStorage.removeItem('btSession'); }
+
 // ── State ─────────────────────────────────────────────────
 let socket, ytPlayer, ytReady = false, ytErrorTimer = null;
 let state = {
@@ -250,6 +262,26 @@ function spawnConfetti() {
   }
 }
 
+// ── Waiting room helper ───────────────────────────────────
+function showWaitingRoom(data) {
+  $('displayRoomCode').textContent = data.roomCode;
+  showScreen('screenWaiting');
+  if (data.isHost) {
+    $('catConfigCard').style.display    = 'block';
+    $('waitingActions').style.display   = 'flex';
+    $('playerWaitingCard').style.display = 'none';
+    renderCatConfig();
+    loadYtApi();
+  } else {
+    $('catConfigCard').style.display    = 'none';
+    $('waitingActions').style.display   = 'none';
+    $('playerWaitingCard').style.display = 'block';
+    $('playerColorBadge').innerHTML =
+      `<div class="player-chip"><div class="player-dot" style="background:${data.color}"></div>${escHtml(state.pseudo)}</div>`;
+  }
+  renderPlayerList(data.players);
+}
+
 // ── Socket setup ──────────────────────────────────────────
 function connectSocket() {
   socket = io({ transports: ['websocket', 'polling'] });
@@ -264,6 +296,8 @@ function connectSocket() {
   socket.on('room_joined', (data) => {
     state.roomCode = data.roomCode;
     state.isHost   = data.isHost;
+    if (!data.isHost) { state.playerId = data.playerId; state.color = data.color; }
+    saveSession();
 
     $('displayRoomCode').textContent = data.roomCode;
     showScreen('screenWaiting');
@@ -275,8 +309,6 @@ function connectSocket() {
       renderCatConfig();
       loadYtApi();
     } else {
-      state.playerId = data.playerId;
-      state.color    = data.color;
       $('catConfigCard').style.display   = 'none';
       $('waitingActions').style.display  = 'none';
       $('playerWaitingCard').style.display = 'block';
@@ -285,6 +317,64 @@ function connectSocket() {
     }
 
     renderPlayerList(data.players);
+  });
+
+  // ── Room rejoined (after page refresh) ──
+  socket.on('room_rejoined', (data) => {
+    state.roomCode = data.roomCode;
+    state.isHost   = data.isHost;
+    if (!data.isHost) {
+      state.playerId = data.playerId;
+      state.color    = data.color;
+      state.pseudo   = data.pseudo;
+    }
+    saveSession();
+
+    if (data.phase === 'lobby') {
+      showWaitingRoom(data);
+
+    } else if (data.phase === 'playing') {
+      state.songIndex = data.songIndex;
+      state.total     = data.total;
+      state.timerLeft = data.timeLeft || ROUND_DURATION;
+      const roundLabel = `Manche ${data.songIndex} / ${data.total}`;
+
+      if (data.isHost) {
+        state.currentSong = data.song;
+        loadYtApi();
+        showScreen('screenHost');
+        $('hostRoundBanner').textContent   = roundLabel;
+        $('hostCategoryBadge').textContent = data.category;
+        $('hostSongTitle').textContent     = data.titleForHost;
+        setTimer(data.timerRunning ? data.timeLeft : ROUND_DURATION);
+        renderBuzzList(data.buzzOrder || [], data.activeBuzzerId);
+        if (!data.buzzOrder || data.buzzOrder.length === 0) $('hostValidation').style.display = 'none';
+        renderScoreboard('hostScoreboard', data.scores, roundLabel);
+      } else {
+        showScreen('screenPlayer');
+        $('playerRoundBanner').textContent   = roundLabel;
+        $('playerCategoryBadge').textContent = data.category;
+        $('playerDotTop').style.background   = data.color;
+        $('playerPseudoTop').textContent     = data.pseudo;
+        $('buzzerBtn').disabled  = !!data.alreadyBuzzed;
+        $('buzzStatus').textContent = data.alreadyBuzzed ? '⏳ Tu as déjà buzzé ce tour…' : '🎵 En attente…';
+        $('buzzStatus').className   = 'buzz-status';
+        setTimer(data.timerRunning ? data.timeLeft : ROUND_DURATION);
+        renderScoreboard('playerScoreboard', data.scores, roundLabel);
+      }
+
+    } else if (data.phase === 'gameover') {
+      showScreen('screenPodium');
+      spawnConfetti();
+      renderPodium(data.podium);
+      $('podiumHostActions').style.display = data.isHost ? 'flex' : 'none';
+      $('podiumPlayerMsg').style.display   = data.isHost ? 'none' : 'block';
+    }
+  });
+
+  socket.on('rejoin_failed', () => {
+    clearSession();
+    // stay on lobby screen
   });
 
   // ── Player joined ──
@@ -421,6 +511,7 @@ function connectSocket() {
   // ── Game stopped by host ──
   socket.on('game_stopped', () => {
     ytStop();
+    clearSession();
     location.reload();
   });
 
@@ -555,6 +646,7 @@ function wireButtons() {
 
   // Podium: new game
   $('btnNewGame').addEventListener('click', () => {
+    clearSession();
     location.reload();
   });
 
@@ -594,3 +686,25 @@ function wireButtons() {
 
 // ── Init ──────────────────────────────────────────────────
 wireButtons();
+
+// Try to rejoin an existing session after page refresh
+(function tryRejoin() {
+  let saved;
+  try { saved = JSON.parse(localStorage.getItem('btSession')); } catch { return; }
+  if (!saved || !saved.roomCode) return;
+
+  // Restore state fields needed before socket events arrive
+  state.pseudo  = saved.pseudo  || '';
+  state.isHost  = saved.isHost  || false;
+  state.playerId = saved.playerId || null;
+  state.color   = saved.color   || '';
+
+  connectSocket();
+  socket.once('connect', () => {
+    socket.emit('rejoin_room', {
+      roomCode: saved.roomCode,
+      playerId: saved.playerId,
+      isHost:   saved.isHost,
+    });
+  });
+})();
