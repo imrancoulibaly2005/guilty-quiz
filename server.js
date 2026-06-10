@@ -17,6 +17,7 @@ const io     = new Server(server, {
 app.use(express.static(path.join(__dirname, 'public')));
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 app.get('/api/songs', (_req, res) => res.json(SONGS));
+app.get('/test', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'test.html')));
 app.get('/', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 // ─── Constants ───────────────────────────────────────────────────────────────
