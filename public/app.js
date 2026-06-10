@@ -224,10 +224,7 @@ function ytStop() {
 
 function showYtError() {
   $('ytErrorBanner').classList.add('visible');
-  ytErrorTimer = setTimeout(() => {
-    hideYtError();
-    if (state.isHost && socket) socket.emit('next_song', { roomCode: state.roomCode });
-  }, 2000);
+  // No auto-skip — host clicks ⏭️ Passer manually
 }
 
 function hideYtError() {
@@ -315,8 +312,8 @@ function connectSocket() {
       $('hostValidation').style.display  = 'none';
       renderScoreboard('hostScoreboard', data.scores, roundLabel);
 
-      // Load video
-      ytLoad(data.song.youtubeId, data.song.startAt);
+      // Store song data — video loaded only when host clicks Play
+      state.currentSong = data.song;
 
     } else {
       showScreen('screenPlayer');
@@ -498,8 +495,11 @@ function wireButtons() {
     socket.emit('start_game', { roomCode: state.roomCode, categories: cats });
   });
 
-  // Host: play
-  $('btnPlay').addEventListener('click', () => { ytPlay(); });
+  // Host: play — load then play so error only triggers on explicit action
+  $('btnPlay').addEventListener('click', () => {
+    if (state.currentSong) ytLoad(state.currentSong.youtubeId, state.currentSong.startAt);
+    setTimeout(ytPlay, 300);
+  });
 
   // Host: stop
   $('btnStop').addEventListener('click', () => { ytStop(); });
