@@ -418,6 +418,12 @@ function connectSocket() {
     }
   });
 
+  // ── Game stopped by host ──
+  socket.on('game_stopped', () => {
+    ytStop();
+    location.reload();
+  });
+
   // ── Game over ──
   socket.on('game_over', ({ podium }) => {
     showScreen('screenPodium');
@@ -551,13 +557,37 @@ function wireButtons() {
     location.reload();
   });
 
-  // Player: buzzer
+  // Host: stop game (waiting room)
+  $('btnStopGameWaiting').addEventListener('click', () => {
+    if (!confirm('Fermer la salle et renvoyer tout le monde au lobby ?')) return;
+    socket.emit('stop_game', { roomCode: state.roomCode });
+  });
+
+  // Host: stop game (during game)
+  $('btnStopGameHost').addEventListener('click', () => {
+    if (!confirm('Arrêter la partie et renvoyer tout le monde au lobby ?')) return;
+    socket.emit('stop_game', { roomCode: state.roomCode });
+  });
+
+  // Player: buzzer click
   $('buzzerBtn').addEventListener('click', () => {
     if ($('buzzerBtn').disabled) return;
     buzz440();
     flashBuzz(state.color || '#FF4FCB');
     $('buzzerBtn').disabled = true;
     socket.emit('buzz', { roomCode: state.roomCode });
+  });
+
+  // Spacebar buzz (PC)
+  document.addEventListener('keydown', (e) => {
+    if (e.code !== 'Space' && e.key !== ' ') return;
+    const screen = $('screenPlayer');
+    if (!screen || !screen.classList.contains('active')) return;
+    const btn = $('buzzerBtn');
+    if (btn && !btn.disabled) {
+      e.preventDefault();
+      btn.click();
+    }
   });
 }
 

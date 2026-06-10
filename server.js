@@ -28,7 +28,7 @@ const ALL_CATEGORIES = [
   '⚽ Sport & Urban',
   '🕹️ Classiques 90s'
 ];
-const ROOM_TIMEOUT_MS = 15 * 60 * 1000;
+const ROOM_TIMEOUT_MS = 4 * 60 * 60 * 1000; // 4h safety net — room is destroyed by stop_game or host disconnect
 const MAX_PLAYERS = 10;
 const ROUND_DURATION = 30;
 
@@ -369,6 +369,14 @@ io.on('connection', socket => {
     if (!room || room.hostSocketId !== socket.id) return;
     if (room.timer) { clearInterval(room.timer); room.timer = null; }
     startNextSong(room);
+  });
+
+  // Host stops game early
+  socket.on('stop_game', ({ roomCode }) => {
+    const room = rooms.get(roomCode);
+    if (!room || room.hostSocketId !== socket.id) return;
+    io.to(roomCode).emit('game_stopped');
+    destroyRoom(roomCode);
   });
 
   // Host replay
