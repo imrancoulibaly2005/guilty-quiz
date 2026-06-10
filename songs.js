@@ -56,15 +56,15 @@ const SONGS = [
   // ══════════════════════════════════════════════════════
   //  🎌  ANIME VF
   // ══════════════════════════════════════════════════════
-  { id: 38, title: "Naruto (VF)",                     youtubeId: "rDwg7Y8BdXE", startAt: 5, category: "🎌 Anime VF" },
-  { id: 39, title: "Dragon Ball Z (VF)",              youtubeId: "1JAuE1XC-ro", startAt: 5, category: "🎌 Anime VF" },
-  { id: 40, title: "One Piece (VF)",                  youtubeId: "LDHwn2dUbMw", startAt: 5, category: "🎌 Anime VF" },
-  { id: 41, title: "Pokémon (VF)",                    youtubeId: "YhN4oAS3O4c", startAt: 5, category: "🎌 Anime VF" },
-  { id: 42, title: "Yu-Gi-Oh! (VF)",                 youtubeId: "ErhzuwW9uGs", startAt: 5, category: "🎌 Anime VF" },
-  { id: 43, title: "Fairy Tail (VF)",                 youtubeId: "NOldpCyItVc", startAt: 5, category: "🎌 Anime VF" },
-  { id: 44, title: "Beyblade (VF)",                   youtubeId: "TGgUbDoPj3w", startAt: 5, category: "🎌 Anime VF" },
-  { id: 45, title: "Sonic X (VF)",                    youtubeId: "5c8Q7LzaI5k", startAt: 5, category: "🎌 Anime VF" },
-  { id: 46, title: "Shaman King (VF)",                youtubeId: "3cShk6T1Oss", startAt: 5, category: "🎌 Anime VF" },
+  { id: 38, title: "Naruto — ROCKS (OP1)",             youtubeId: "4t__wczfpRI", startAt: 5,  category: "🎌 Anime VF" },
+  { id: 39, title: "Dragon Ball Z — Cha-La Head-Cha-La", youtubeId: "hcdDnwm4pAE", startAt: 5, category: "🎌 Anime VF" },
+  { id: 40, title: "One Piece — We Are! (OP1)",       youtubeId: "TFDDwEQhexs", startAt: 30, category: "🎌 Anime VF" },
+  { id: 41, title: "Pokémon — Mezase Pokémon Master", youtubeId: "JbLNEgNUM3M", startAt: 5,  category: "🎌 Anime VF" },
+  { id: 42, title: "Yu-Gi-Oh! (VF)",                 youtubeId: "ErhzuwW9uGs", startAt: 5,  category: "🎌 Anime VF" },
+  { id: 43, title: "Fairy Tail — Snow Fairy (OP1)",   youtubeId: "j9SFjzhnkzI", startAt: 5,  category: "🎌 Anime VF" },
+  { id: 44, title: "Beyblade — Fighting Spirits (OP1)", youtubeId: "ie8ddcRoaSM", startAt: 5, category: "🎌 Anime VF" },
+  { id: 45, title: "Sonic X — Sonic Drive (OP1)",     youtubeId: "7n5LLo5OOhY", startAt: 5,  category: "🎌 Anime VF" },
+  { id: 46, title: "Shaman King — Over Soul (OP1)",   youtubeId: "IHfmLbtANz0", startAt: 5,  category: "🎌 Anime VF" },
 ];
 
 module.exports = SONGS;

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🎵 Test des extraits — Blind Test Cartoons</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #0D0D1A;
+    --surface: #161628;
+    --border:  #2a2a4a;
+    --magenta: #FF4FCB;
+    --yellow:  #FFD600;
+    --cyan:    #00D4FF;
+    --green:   #00FF94;
+    --text:    #E8E8F0;
+    --dim:     #888;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; }
+
+  /* ── Top bar ── */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  .topbar h1 { font-family: 'Bangers', cursive; font-size: 1.6rem; color: var(--yellow); letter-spacing: .05em; }
+  .topbar .badge { background: var(--magenta); color: #fff; font-size: .75rem; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
+  .topbar .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+  .filter-btn {
+    padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border);
+    background: transparent; color: var(--dim); cursor: pointer; font-size: .8rem; transition: all .15s;
+  }
+  .filter-btn:hover, .filter-btn.active { border-color: var(--cyan); color: var(--cyan); background: rgba(0,212,255,.08); }
+  .search-wrap { display: flex; align-items: center; gap: 8px; }
+  .search-wrap input {
+    background: var(--bg); border: 1px solid var(--border); color: var(--text);
+    padding: 5px 12px; border-radius: 20px; font-size: .85rem; outline: none; width: 180px;
+  }
+  .search-wrap input:focus { border-color: var(--cyan); }
+
+  /* ── Player strip ── */
+  .player-strip {
+    background: #0a0a16;
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  #yt-player { width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; }
+  .now-playing-label { font-size: .75rem; color: var(--dim); text-transform: uppercase; letter-spacing: .08em; }
+  .now-playing-title {
+    font-family: 'Bangers', cursive; font-size: 1.3rem; color: var(--yellow);
+    letter-spacing: .05em; max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .player-controls { display: flex; gap: 8px; margin-left: auto; }
+  .btn-ctrl {
+    padding: 6px 16px; border-radius: 8px; border: none; cursor: pointer;
+    font-weight: 600; font-size: .85rem; transition: opacity .15s;
+  }
+  .btn-ctrl:hover { opacity: .8; }
+  .btn-stop  { background: #333; color: #fff; }
+  .yt-error  { background: #FF3860; color: #fff; font-size: .8rem; padding: 4px 10px; border-radius: 6px; display: none; }
+
+  /* ── Song table ── */
+  .table-wrap { padding: 20px; }
+  .song-count { font-size: .8rem; color: var(--dim); margin-bottom: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  thead th {
+    text-align: left; padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--dim); font-size: .75rem; text-transform: uppercase; letter-spacing: .06em;
+  }
+  tbody tr { border-bottom: 1px solid rgba(255,255,255,.05); transition: background .1s; }
+  tbody tr:hover { background: rgba(255,255,255,.03); }
+  tbody tr.playing { background: rgba(255,214,0,.06); }
+  td { padding: 10px 12px; vertical-align: middle; }
+  .td-id    { color: var(--dim); width: 40px; }
+  .td-title { font-weight: 600; }
+  .td-cat   { font-size: .8rem; }
+  .td-ytid  { font-family: monospace; font-size: .8rem; color: var(--cyan); }
+  .td-start { color: var(--dim); width: 60px; text-align: center; }
+  .td-play  { width: 100px; }
+  .btn-play {
+    padding: 5px 14px; border-radius: 8px; border: none; cursor: pointer;
+    font-weight: 600; font-size: .8rem; background: var(--magenta); color: #fff; transition: all .15s;
+    width: 100%;
+  }
+  .btn-play:hover { background: #e040b5; }
+  .btn-play.active { background: var(--green); color: #000; }
+  .btn-yt-link {
+    display: inline-block; margin-top: 3px; font-size: .7rem; color: var(--dim);
+    text-decoration: none;
+  }
+  .btn-yt-link:hover { color: var(--cyan); }
+  .row-hidden { display: none; }
+</style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+  <h1>🎵 Test des extraits</h1>
+  <span class="badge" id="totalBadge">46 titres</span>
+  <div class="filters" id="catFilters">
+    <button class="filter-btn active" data-cat="all">Toutes</button>
+  </div>
+  <div class="search-wrap">
+    <input type="text" id="searchInput" placeholder="🔍 Rechercher…">
+  </div>
+</div>
+
+<!-- Player strip -->
+<div class="player-strip">
+  <div id="yt-player"></div>
+  <div>
+    <div class="now-playing-label">En cours</div>
+    <div class="now-playing-title" id="nowTitle">— Aucun extrait —</div>
+  </div>
+  <div class="player-controls">
+    <button class="btn-ctrl btn-stop" id="btnStop">⏹ Stop</button>
+    <span class="yt-error" id="ytError">⚠️ Non embeddable</span>
+  </div>
+</div>
+
+<!-- Table -->
+<div class="table-wrap">
+  <div class="song-count" id="songCount"></div>
+  <table>
+    <thead>
+      <tr>
+        <th class="td-id">#</th>
+        <th>Titre</th>
+        <th>Catégorie</th>
+        <th>YouTube ID</th>
+        <th class="td-start">Start</th>
+        <th class="td-play">Jouer</th>
+      </tr>
+    </thead>
+    <tbody id="songTable"></tbody>
+  </table>
+</div>
+
+<script>
+let ytPlayer, ytReady = false, currentId = null;
+
+// ── Load songs from API ──────────────────────────────────
+fetch('/api/songs')
+  .then(r => r.json())
+  .then(songs => {
+    buildFilters(songs);
+    buildTable(songs);
+    updateCount(songs.length, songs.length);
+    setupFilters(songs);
+    setupSearch(songs);
+  });
+
+function buildFilters(songs) {
+  const cats = [...new Set(songs.map(s => s.category))];
+  const wrap = document.getElementById('catFilters');
+  cats.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn';
+    btn.dataset.cat = c;
+    btn.textContent = c;
+    wrap.appendChild(btn);
+  });
+}
+
+function buildTable(songs) {
+  const tbody = document.getElementById('songTable');
+  document.getElementById('totalBadge').textContent = songs.length + ' titres';
+  tbody.innerHTML = songs.map(s => `
+    <tr id="row-${s.id}" data-cat="${escHtml(s.category)}" data-title="${escHtml(s.title.toLowerCase())}">
+      <td class="td-id">${s.id}</td>
+      <td class="td-title">${escHtml(s.title)}</td>
+      <td class="td-cat">${escHtml(s.category)}</td>
+      <td class="td-ytid">
+        ${escHtml(s.youtubeId)}
+        <br><a class="btn-yt-link" href="https://www.youtube.com/watch?v=${escHtml(s.youtubeId)}" target="_blank">↗ YT</a>
+      </td>
+      <td class="td-start">${s.startAt}s</td>
+      <td class="td-play">
+        <button class="btn-play" onclick="playSong(${s.id}, '${escHtml(s.youtubeId)}', ${s.startAt}, '${escHtml(s.title)}')">▶ Jouer</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function updateCount(shown, total) {
+  document.getElementById('songCount').textContent =
+    shown === total ? `${total} titres` : `${shown} / ${total} titres affichés`;
+}
+
+function setupFilters(songs) {
+  document.getElementById('catFilters').addEventListener('click', e => {
+    const btn = e.target.closest('.filter-btn');
+    if (!btn) return;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    applyFilters(songs);
+  });
+}
+
+function setupSearch(songs) {
+  document.getElementById('searchInput').addEventListener('input', () => applyFilters(songs));
+}
+
+function applyFilters(songs) {
+  const activeCat = document.querySelector('.filter-btn.active')?.dataset.cat || 'all';
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  let shown = 0;
+  songs.forEach(s => {
+    const row = document.getElementById('row-' + s.id);
+    const catMatch = activeCat === 'all' || s.category === activeCat;
+    const qMatch   = !q || s.title.toLowerCase().includes(q);
+    if (catMatch && qMatch) { row.classList.remove('row-hidden'); shown++; }
+    else row.classList.add('row-hidden');
+  });
+  updateCount(shown, songs.length);
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── YouTube ──────────────────────────────────────────────
+const tag = document.createElement('script');
+tag.src = 'https://www.youtube.com/iframe_api';
+document.head.appendChild(tag);
+
+window.onYouTubeIframeAPIReady = function() {
+  ytPlayer = new YT.Player('yt-player', {
+    width: '1', height: '1',
+    playerVars: { autoplay: 0, controls: 0, rel: 0 },
+    events: {
+      onReady: () => { ytReady = true; },
+      onError: () => {
+        document.getElementById('ytError').style.display = 'inline-block';
+      },
+      onStateChange: (e) => {
+        if (e.data === YT.PlayerState.ENDED) setActive(null);
+      }
+    }
+  });
+};
+
+function playSong(id, videoId, startAt, title) {
+  document.getElementById('ytError').style.display = 'none';
+  if (!ytReady) return alert('Joueur YouTube pas encore prêt, réessaie.');
+
+  // Deactivate all buttons
+  setActive(id);
+
+  ytPlayer.loadVideoById({ videoId, startSeconds: startAt });
+  document.getElementById('nowTitle').textContent = title;
+  currentId = id;
+}
+
+function setActive(id) {
+  document.querySelectorAll('.btn-play').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('tbody tr').forEach(r => r.classList.remove('playing'));
+  if (id !== null) {
+    const btn = document.querySelector(`#row-${id} .btn-play`);
+    const row = document.getElementById('row-' + id);
+    if (btn) btn.classList.add('active');
+    if (row) { row.classList.add('playing'); row.scrollIntoView({ block: 'nearest' }); }
+  }
+}
+
+document.getElementById('btnStop').addEventListener('click', () => {
+  if (ytReady && ytPlayer) ytPlayer.stopVideo();
+  document.getElementById('nowTitle').textContent = '— Aucun extrait —';
+  setActive(null);
+});
+</script>
+</body>
+</html>
