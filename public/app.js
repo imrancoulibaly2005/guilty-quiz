@@ -5,11 +5,11 @@
 const ROUND_DURATION = 30;
 const PLAYER_COLORS  = ['#FF4FCB','#00D4FF','#FFD600','#00FF94','#FF6B35','#A855F7','#FF3860','#22D3EE'];
 const ALL_CATEGORIES = [
-  { name: '🇫🇷 Franco-Européen',   count: 10 },
-  { name: '⚽ Sport & Urban',       count: 4  },
+  { name: '🇫🇷 Franco-Européen',   count: 13 },
+  { name: '⚽ Sport & Urban',       count: 5  },
   { name: '🕹️ Classiques 80-90s', count: 5  },
-  { name: '📺 CN, Nick & Disney',  count: 9  },
-  { name: '🎌 Anime VF',           count: 8  },
+  { name: '📺 CN, Nick & Disney',  count: 14 },
+  { name: '🎌 Anime VF',           count: 9  },
 ];
 
 // ── Session persistence ───────────────────────────────────
