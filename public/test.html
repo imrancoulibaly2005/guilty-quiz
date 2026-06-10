@@ -185,10 +185,16 @@ function buildTable(songs) {
       </td>
       <td class="td-start">${s.startAt}s</td>
       <td class="td-play">
-        <button class="btn-play" onclick="playSong(${s.id}, '${escHtml(s.youtubeId)}', ${s.startAt}, '${escHtml(s.title)}')">▶ Jouer</button>
+        <button class="btn-play" data-id="${s.id}" data-ytid="${escHtml(s.youtubeId)}" data-start="${s.startAt}" data-title="${escHtml(s.title)}">▶ Jouer</button>
       </td>
     </tr>
   `).join('');
+
+  tbody.addEventListener('click', e => {
+    const btn = e.target.closest('.btn-play');
+    if (!btn) return;
+    playSong(Number(btn.dataset.id), btn.dataset.ytid, Number(btn.dataset.start), btn.dataset.title);
+  });
 }
 
 function updateCount(shown, total) {
