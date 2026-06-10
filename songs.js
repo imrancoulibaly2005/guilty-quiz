@@ -27,7 +27,7 @@ const SONGS = [
   // ══════════════════════════════════════════════════════
   { id: 15, title: "Inspecteur Gadget (VF)",        youtubeId: "VHneKZ9AmwM", startAt: 5, category: "🕹️ Classiques 80-90s" },
   { id: 16, title: "Capitaine Flam",                youtubeId: "Q_hE-UhuJoY", startAt: 5, category: "🕹️ Classiques 80-90s" },
-  { id: 17, title: "Les Tortues Ninja (VF)",        youtubeId: "fM-ZdYXFI30", startAt: 5, category: "🕹️ Classiques 80-90s" },
+  { id: 17, title: "Les Tortues Ninja (VF)",        youtubeId: "zN0ee0qEtXU", startAt: 5, category: "🕹️ Classiques 80-90s" },
   { id: 18, title: "Aaahh!!! Les Dingues (VF)",     youtubeId: "8VfPz-2V8PU", startAt: 5, category: "🕹️ Classiques 80-90s" },
   { id: 19, title: "Courage le Chien Froussard (VF)", youtubeId: "CS94Dhv8Eoo", startAt: 5, category: "🕹️ Classiques 80-90s" },
 
