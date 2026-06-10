@@ -14,7 +14,7 @@ const SONGS = [
   // 🕹️ CLASSIQUES 90s
   { id: 9,  title: "Inspecteur Gadget",             youtubeId: "tDc22_9G6rE", startAt: 0, category: "🕹️ Classiques 90s" },
   { id: 10, title: "Capitaine Flam",                youtubeId: "Q_hE-UhuJoY", startAt: 0, category: "🕹️ Classiques 90s" },
-  { id: 11, title: "Les Tortues Ninja (VF)",        youtubeId: "VA_-6v1EzYE", startAt: 0, category: "🕹️ Classiques 90s" },
+  { id: 11, title: "Les Tortues Ninja (VF)",        youtubeId: "fM-ZdYXFI30", startAt: 0, category: "🕹️ Classiques 90s" },
   { id: 12, title: "Aaahh!!! Les Dingues (VF)",     youtubeId: "8VfPz-2V8PU", startAt: 0, category: "🕹️ Classiques 90s" },
 ];
 
