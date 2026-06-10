@@ -122,8 +122,8 @@ function renderPlayerList(players) {
 // ── Category config (host lobby) ──────────────────────────
 function renderCatConfig() {
   const list = $('catList');
-  list.innerHTML = ALL_CATEGORIES.map(c =>
-    `<label class="cat-item" id="cat_${btoa(c.name)}">
+  list.innerHTML = ALL_CATEGORIES.map((c, i) =>
+    `<label class="cat-item">
       <input type="checkbox" checked data-cat="${escHtml(c.name)}">
       <span class="cat-name">${c.name}</span>
       <span class="cat-count">${c.count} titres</span>
