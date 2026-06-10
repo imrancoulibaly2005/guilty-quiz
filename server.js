@@ -31,7 +31,7 @@ const ALL_CATEGORIES = [
   '🕹️ Classiques 90s'
 ];
 const ROOM_TIMEOUT_MS = 4 * 60 * 60 * 1000; // 4h safety net — room is destroyed by stop_game or host disconnect
-const MAX_PLAYERS = 10;
+const MAX_PLAYERS = 15;
 const ROUND_DURATION = 30;
 
 // ─── Rooms ───────────────────────────────────────────────────────────────────
@@ -210,7 +210,7 @@ io.on('connection', socket => {
     if (!room) return socket.emit('error', { message: 'Code de salle invalide.' });
     if (!pseudo || !pseudo.trim()) return socket.emit('error', { message: 'Pseudo requis.' });
     if (room.phase !== 'lobby') return socket.emit('error', { message: 'La partie a déjà commencé.' });
-    if (room.players.length >= MAX_PLAYERS) return socket.emit('error', { message: 'Salle pleine (max 10 joueurs).' });
+    if (room.players.length >= MAX_PLAYERS) return socket.emit('error', { message: 'Salle pleine (max 15 joueurs).' });
 
     const name = pseudo.trim();
     if (room.players.find(p => p.pseudo === name)) return socket.emit('error', { message: 'Ce pseudo est déjà pris.' });

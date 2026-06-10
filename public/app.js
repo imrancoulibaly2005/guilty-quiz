@@ -134,7 +134,7 @@ function renderPlayerList(players) {
       `<div class="player-chip"><div class="player-dot" style="background:${p.color}"></div>${escHtml(p.pseudo)}</div>`
     ).join('');
   }
-  $('playerCountLabel').textContent = `${players ? players.length : 0} / 10`;
+  $('playerCountLabel').textContent = `${players ? players.length : 0} / 15`;
 }
 
 // ── Category config (host lobby) ──────────────────────────
