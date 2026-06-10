@@ -63,7 +63,7 @@ const SONGS = [
   { id: 42, title: "Yu-Gi-Oh! (VF)",                 youtubeId: "ErhzuwW9uGs", startAt: 5,  category: "🎌 Anime VF" },
   { id: 43, title: "Fairy Tail — Snow Fairy (OP1)",   youtubeId: "j9SFjzhnkzI", startAt: 5,  category: "🎌 Anime VF" },
   { id: 44, title: "Beyblade Metal Fusion (VF)",       youtubeId: "Yw9G9glw9lE", startAt: 5, category: "🎌 Anime VF" },
-  { id: 45, title: "Sonic X (VF)",                    youtubeId: "5c8Q7LzaI5k", startAt: 5,  category: "🎌 Anime VF" },
+  { id: 45, title: "Sonic le Rebelle (VF)",            youtubeId: "n4RUrBbvWHA", startAt: 5,  category: "🎌 Anime VF" },
   { id: 46, title: "Shaman King — Over Soul (OP1)",   youtubeId: "IHfmLbtANz0", startAt: 5,  category: "🎌 Anime VF" },
 ];
 
