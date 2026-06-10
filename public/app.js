@@ -5,9 +5,11 @@
 const ROUND_DURATION = 30;
 const PLAYER_COLORS  = ['#FF4FCB','#00D4FF','#FFD600','#00FF94','#FF6B35','#A855F7','#FF3860','#22D3EE'];
 const ALL_CATEGORIES = [
-  { name: '🇫🇷 Franco-Européen', count: 5 },
-  { name: '⚽ Sport & Urban',     count: 3 },
-  { name: '🕹️ Classiques 90s',   count: 4 },
+  { name: '🇫🇷 Franco-Européen',   count: 10 },
+  { name: '⚽ Sport & Urban',       count: 4  },
+  { name: '🕹️ Classiques 80-90s', count: 5  },
+  { name: '📺 CN, Nick & Disney',  count: 9  },
+  { name: '🎌 Anime VF',           count: 8  },
 ];
 
 // ── State ─────────────────────────────────────────────────
@@ -292,6 +294,7 @@ function connectSocket() {
 
   // ── Game started (new round) ──
   socket.on('game_started', (data) => {
+    ytStop(); // cut audio from previous round
     state.songIndex = data.songIndex;
     state.total     = data.total;
     state.timerLeft = ROUND_DURATION;
@@ -334,6 +337,19 @@ function connectSocket() {
 
   // ── Player buzzed ──
   socket.on('player_buzzed', ({ buzzOrder, activeBuzzerId }) => {
+    // On the first buzz: cut audio, play buzz sound, flash all screens
+    if (buzzOrder && buzzOrder.length === 1) {
+      const isMyOwnBuzz = !state.isHost && buzzOrder[0].playerId === state.playerId;
+      if (!isMyOwnBuzz) {
+        buzz440();
+        flashBuzz(buzzOrder[0].color || '#FF4FCB');
+      }
+      if (state.isHost) {
+        ytStop();
+        flashBuzz(buzzOrder[0].color || '#FF4FCB');
+      }
+    }
+
     if (state.isHost) {
       renderBuzzList(buzzOrder, activeBuzzerId);
       return;
