@@ -1,11 +1,11 @@
 {
-  "name": "guilty-quiz",
+  "name": "blindtest-cartoons",
   "version": "1.0.0",
+  "description": "Blind Test Cartoons & Dessins animés cultes 90s-2010 — multijoueur temps réel",
   "engines": { "node": ">=18.0.0" },
   "scripts": { "start": "node server.js" },
   "dependencies": {
     "express": "^4.18.2",
-    "socket.io": "^4.7.2",
-    "qrcode": "^1.5.3"
+    "socket.io": "^4.7.2"
   }
 }

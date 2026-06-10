@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🎵 Blind Test Cartoons 90s–2010</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- CRT overlay (buzz effect) -->
+<div class="crt-overlay" id="crtOverlay"></div>
+<div class="buzz-flash" id="buzzFlash"></div>
+<div class="confetti-container" id="confettiContainer"></div>
+
+<!-- YouTube player (1×1, invisible) -->
+<div id="yt-player"></div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 1 — LOBBY
+     ═══════════════════════════════════════════════════════ -->
+<div class="screen active" id="screenLobby">
+  <div class="logo">🎵 Blind Test</div>
+  <div class="logo-sub">Cartoons &amp; Dessins animés cultes 90s–2010</div>
+
+  <!-- Create or Join -->
+  <div class="card" id="lobbyForm">
+    <div class="flex flex-col" style="gap:16px">
+      <div>
+        <label>Ton pseudo</label>
+        <input type="text" id="inputPseudo" placeholder="Ex: Imran" maxlength="20">
+      </div>
+      <div>
+        <label>Code de salle (laisser vide pour créer)</label>
+        <input type="text" id="inputCode" placeholder="Ex: XKPQ" maxlength="4" style="text-transform:uppercase;letter-spacing:.15em">
+      </div>
+      <button class="btn btn-primary btn-full" id="btnJoin">Rejoindre / Créer</button>
+      <div id="lobbyError" class="text-sm" style="color:#FF3860;text-align:center;display:none"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 2 — WAITING ROOM (HOST)
+     ═══════════════════════════════════════════════════════ -->
+<div class="screen" id="screenWaiting">
+  <div class="logo" style="font-size:2.2rem">Salle d'attente</div>
+
+  <div class="card card-wide">
+    <div class="room-code-label">Code de la salle</div>
+    <div class="room-code" id="displayRoomCode">----</div>
+    <div class="text-sm text-dim text-center mt-8">Partage ce code avec tes amis !</div>
+  </div>
+
+  <!-- Players -->
+  <div class="card card-wide">
+    <div class="flex" style="align-items:center;justify-content:space-between;margin-bottom:14px">
+      <span class="bangers text-cyan" style="font-size:1.1rem">Joueurs connectés</span>
+      <span class="text-dim text-sm" id="playerCountLabel">0 / 10</span>
+    </div>
+    <div class="player-list" id="playerListWaiting">
+      <span class="text-dim text-sm">En attente de joueurs<span class="waiting-dots"></span></span>
+    </div>
+  </div>
+
+  <!-- Host: category config -->
+  <div class="card card-wide" id="catConfigCard" style="display:none">
+    <div class="bangers text-cyan" style="font-size:1.1rem;margin-bottom:14px">Configurer les catégories</div>
+    <div class="cat-list" id="catList"></div>
+    <div class="text-sm text-dim mt-8 text-center" id="totalSongsLabel"></div>
+  </div>
+
+  <div id="waitingActions" style="display:none;width:100%;max-width:480px;display:flex;flex-direction:column;gap:10px">
+    <button class="btn btn-primary btn-full" id="btnStartGame">▶ Lancer la partie</button>
+  </div>
+
+  <!-- Player: waiting message -->
+  <div class="card" id="playerWaitingCard" style="display:none;text-align:center">
+    <div class="bangers text-cyan" style="font-size:1.3rem">Tu es bien connecté !</div>
+    <div class="text-dim text-sm mt-8">L'hôte va lancer la partie<span class="waiting-dots"></span></div>
+    <div class="mt-8" id="playerColorBadge"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 3 — HOST GAME VIEW
+     ═══════════════════════════════════════════════════════ -->
+<div class="screen" id="screenHost">
+  <!-- Round / category info -->
+  <div class="round-banner" id="hostRoundBanner">Manche 1 / ?</div>
+  <div class="category-badge" id="hostCategoryBadge"></div>
+
+  <!-- Current song for host only -->
+  <div class="card card-wide" style="text-align:center">
+    <div class="text-dim text-sm">Titre (visible hôte uniquement)</div>
+    <div class="song-title-reveal mt-8" id="hostSongTitle">…</div>
+  </div>
+
+  <!-- Timer -->
+  <div class="timer-wrap">
+    <div class="timer-bar-bg"><div class="timer-bar-fill" id="hostTimerFill" style="width:100%"></div></div>
+    <div class="timer-label" id="hostTimerLabel">30</div>
+  </div>
+
+  <!-- YT error -->
+  <div class="yt-error-banner" id="ytErrorBanner">⚠️ Extrait indisponible — passage auto dans 2s…</div>
+
+  <!-- Buzz list -->
+  <div class="card card-wide">
+    <div class="bangers text-magenta" style="font-size:1.1rem;margin-bottom:12px">Buzzeurs</div>
+    <div class="buzz-list" id="hostBuzzList">
+      <div class="text-dim text-sm">Personne n'a buzzé</div>
+    </div>
+  </div>
+
+  <!-- Validation buttons (shown when someone buzzed) -->
+  <div id="hostValidation" style="display:none;width:100%;max-width:480px;display:flex;flex-direction:column;gap:10px">
+    <div class="flex" style="gap:10px">
+      <button class="btn btn-green btn-full" id="btnCorrect">✅ Bonne réponse</button>
+      <button class="btn btn-danger btn-full" id="btnWrong">❌ Mauvaise</button>
+    </div>
+    <button class="btn btn-yellow btn-sm" id="btnBonusCat" style="width:100%">🏷️ Bonus catégorie +1</button>
+  </div>
+
+  <!-- Host controls -->
+  <div class="host-controls">
+    <button class="btn btn-primary btn-sm" id="btnPlay">▶️ Lancer l'extrait</button>
+    <button class="btn btn-secondary btn-sm" id="btnStop">⏹️ Stopper</button>
+    <button class="btn btn-secondary btn-sm" id="btnSkip">⏭️ Passer</button>
+  </div>
+
+  <!-- Scoreboard -->
+  <div class="scoreboard" id="hostScoreboard"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 4 — PLAYER GAME VIEW
+     ═══════════════════════════════════════════════════════ -->
+<div class="screen" id="screenPlayer">
+  <!-- Player identity -->
+  <div class="flex" style="gap:10px;align-items:center">
+    <div class="player-dot" id="playerDotTop" style="width:14px;height:14px"></div>
+    <span class="bangers" style="font-size:1.3rem" id="playerPseudoTop"></span>
+  </div>
+
+  <div class="round-banner" id="playerRoundBanner">Manche 1 / ?</div>
+  <div class="category-badge" id="playerCategoryBadge"></div>
+
+  <!-- Timer -->
+  <div class="timer-wrap">
+    <div class="timer-bar-bg"><div class="timer-bar-fill" id="playerTimerFill" style="width:100%"></div></div>
+    <div class="timer-label" id="playerTimerLabel">30</div>
+  </div>
+
+  <!-- BUZZER -->
+  <div class="buzzer-wrap">
+    <button class="buzzer-btn" id="buzzerBtn">BUZZ!</button>
+    <div class="buzz-status" id="buzzStatus">🎵 En attente…</div>
+  </div>
+
+  <!-- Scoreboard -->
+  <div class="scoreboard" id="playerScoreboard"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 5 — REVEAL (between rounds)
+     ═══════════════════════════════════════════════════════ -->
+<div class="screen" id="screenReveal">
+  <div class="bangers text-cyan" style="font-size:1.4rem" id="revealFoundLabel">🎯 Trouvé !</div>
+  <div class="song-title-reveal" id="revealTitle"></div>
+  <div class="category-badge" id="revealCategory"></div>
+  <div class="scoreboard" id="revealScoreboard"></div>
+  <div class="text-dim text-sm text-center" id="revealNext">Prochaine manche<span class="waiting-dots"></span></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 6 — PODIUM
+     ═══════════════════════════════════════════════════════ -->
+<div class="screen" id="screenPodium">
+  <div class="logo" style="font-size:2.5rem;margin-bottom:4px">🏆 Podium</div>
+
+  <div class="podium-wrap" id="podiumBlocks"></div>
+
+  <!-- Full ranking -->
+  <div class="scoreboard card-wide" id="podiumFullRanking" style="max-width:500px"></div>
+
+  <!-- Host replay buttons -->
+  <div id="podiumHostActions" style="display:none;width:100%;max-width:480px;display:flex;flex-direction:column;gap:10px">
+    <button class="btn btn-primary btn-full" id="btnReplay">🔄 Rejouer (mêmes joueurs)</button>
+    <button class="btn btn-secondary btn-full" id="btnNewGame">🏠 Nouvelle partie</button>
+  </div>
+  <div id="podiumPlayerMsg" style="display:none" class="text-dim text-sm text-center">En attente de l'hôte…</div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,16 +1,10 @@
 const express         = require('express');
 const { createServer } = require('http');
 const { Server }      = require('socket.io');
-const QRCode          = require('qrcode');
 const path            = require('path');
-const QUESTIONS       = require('./questions');
-const AVATARS         = require('./avatars');
-const fetchWikiPhoto  = require('./utils/fetchWikiPhoto');
+const SONGS           = require('./songs');
 
-// Cache des photos Wikipedia { questionId → url }
-const photoCache = {};
-
-const PORT       = process.env.PORT       || 3000;
+const PORT       = process.env.PORT || 3000;
 const PUBLIC_URL = process.env.PUBLIC_URL || `http://localhost:${PORT}`;
 
 const app    = express();
@@ -21,326 +15,409 @@ const io     = new Server(server, {
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
-
-// ─── Routes ───────────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
+app.get('/', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
-app.get('/api/avatars', (_req, res) =>
-  res.json({ avatars: AVATARS, takenIds: [...takenAvatars] })
-);
+// ─── Constants ───────────────────────────────────────────────────────────────
+const PLAYER_COLORS = ['#FF4FCB','#00D4FF','#FFD600','#00FF94','#FF6B35','#A855F7','#FF3860','#22D3EE'];
+const ALL_CATEGORIES = [
+  '🇫🇷 Franco-Européen',
+  '📺 CN / Nickelodeon',
+  '🏰 Disney',
+  '⚔️ Anime / Shonen',
+  '⚽ Sport & Urban',
+  '🕹️ Classiques 90s'
+];
+const ROOM_TIMEOUT_MS = 15 * 60 * 1000;
+const MAX_PLAYERS = 10;
+const ROUND_DURATION = 30;
 
-app.get('/api/qrcode', async (_req, res) => {
-  try {
-    const url = `${PUBLIC_URL}/join?room=${game.roomCode}`;
-    const qr  = await QRCode.toDataURL(url, {
-      width: 280, margin: 2,
-      color: { dark: '#ffffff', light: '#0a0a0a' }
-    });
-    res.json({ qr, url, roomCode: game.roomCode });
-  } catch { res.status(500).json({ error: 'QR failed' }); }
-});
+// ─── Rooms ───────────────────────────────────────────────────────────────────
+const rooms = new Map();
 
-app.get('/api/room', (_req, res) =>
-  res.json({ roomCode: game.roomCode, phase: game.phase, playerCount: players.length })
-);
+function mkCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
 
-app.get('/',     (_req, res) => res.sendFile(path.join(__dirname, 'public', 'join.html')));
-app.get('/join', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'join.html')));
-app.get('/host', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'host.html')));
-app.get('/play', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'play.html')));
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
-// ─── State ────────────────────────────────────────────────────────────────────
-function mkCode() { return String(Math.floor(1000 + Math.random() * 9000)); }
+function makeRoom(hostSocketId) {
+  let code;
+  do { code = mkCode(); } while (rooms.has(code));
 
-const game = {
-  roomCode: mkCode(),
-  // Phases : waiting | starting | question | reveal | gameover
-  // 'starting' = game_start émis, les joueurs chargent play.html
-  phase:    'waiting',
-  qIdx:     0,
-  timeLeft: 0,
-  timer:    null
-};
+  const room = {
+    code,
+    hostSocketId,
+    players: [],       // { socketId, playerId, pseudo, color, score, buzzCount, correctCount }
+    phase: 'lobby',    // lobby | playing | gameover
+    playlist: [],
+    songIndex: -1,
+    currentSong: null,
+    buzzOrder: [],
+    currentBuzzIndex: 0,
+    timer: null,
+    timeLeft: 0,
+    inactivityTimer: null,
+    categories: [...ALL_CATEGORIES],
+    colorIndex: 0,
+  };
 
-let players       = [];
-let hostSocketId  = null;
-const takenAvatars = new Set();
-let answerDist     = [0, 0, 0, 0];
+  resetInactivity(room);
+  return room;
+}
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-function leaderboard(limit = Infinity) {
-  return [...players]
+function resetInactivity(room) {
+  if (room.inactivityTimer) clearTimeout(room.inactivityTimer);
+  room.inactivityTimer = setTimeout(() => {
+    io.to(room.code).emit('error', { message: 'Room expirée après 15 min d\'inactivité.' });
+    destroyRoom(room.code);
+  }, ROOM_TIMEOUT_MS);
+}
+
+function destroyRoom(code) {
+  const room = rooms.get(code);
+  if (!room) return;
+  if (room.timer) clearInterval(room.timer);
+  if (room.inactivityTimer) clearTimeout(room.inactivityTimer);
+  rooms.delete(code);
+}
+
+function getScores(room) {
+  return [...room.players]
     .sort((a, b) => b.score - a.score)
-    .slice(0, limit)
-    .map((p, i) => ({ rank: i + 1, nickname: p.nickname, avatarId: p.avatarId, score: p.score }));
+    .map((p, i) => ({
+      rank: i + 1,
+      playerId: p.playerId,
+      pseudo: p.pseudo,
+      color: p.color,
+      score: p.score,
+      delta: p.delta || 0,
+    }));
 }
 
-function pushAvatarUpdate() {
-  io.emit('avatar_update', { takenIds: [...takenAvatars] });
+function getPodium(room) {
+  return [...room.players]
+    .sort((a, b) => b.score - a.score)
+    .map((p, i) => ({
+      rank: i + 1,
+      playerId: p.playerId,
+      pseudo: p.pseudo,
+      color: p.color,
+      score: p.score,
+      buzzCount: p.buzzCount,
+      correctCount: p.correctCount,
+      accuracy: p.buzzCount > 0 ? Math.round((p.correctCount / p.buzzCount) * 100) : 0,
+    }));
 }
 
-function pushPlayerList() {
-  if (!hostSocketId) return;
-  io.to(hostSocketId).emit('player_joined', {
-    players: players.map(p => ({ id: p.socketId, nickname: p.nickname, avatarId: p.avatarId }))
+function startNextSong(room) {
+  room.songIndex++;
+  if (room.songIndex >= room.playlist.length) {
+    endGame(room);
+    return;
+  }
+
+  room.currentSong = room.playlist[room.songIndex];
+  room.buzzOrder = [];
+  room.currentBuzzIndex = 0;
+  room.phase = 'playing';
+  room.timeLeft = ROUND_DURATION;
+  room.players.forEach(p => p.delta = 0);
+
+  resetInactivity(room);
+
+  io.to(room.code).emit('game_started', {
+    song: {
+      youtubeId: room.currentSong.youtubeId,
+      startAt: room.currentSong.startAt,
+      category: room.currentSong.category,
+    },
+    titleForHost: room.currentSong.title,
+    songIndex: room.songIndex + 1,
+    total: room.playlist.length,
+    category: room.currentSong.category,
+    scores: getScores(room),
   });
-}
 
-// Joueurs actifs (connectés) qui n'ont pas encore répondu
-function activePlayers() {
-  return players.filter(p => p.socketId !== null);
-}
-
-function allAnswered() {
-  const active = activePlayers();
-  // IMPORTANT : retourne false si personne n'est connecté
-  return active.length > 0 && active.every(p => p.answered);
-}
-
-function startQuestion() {
-  const q       = QUESTIONS[game.qIdx];
-  game.phase    = 'question';
-  game.timeLeft = 20;
-  answerDist    = [0, 0, 0, 0];
-  players.forEach(p => { p.answered = false; p.lastPoints = 0; });
-
-  io.emit('question_start', {
-    id:        q.id,
-    index:     game.qIdx,
-    total:     QUESTIONS.length,
-    celebrity: q.celebrity,
-    question:  q.question,
-    options:   q.options,
-    photoUrl:  photoCache[q.id] || null
-  });
-
-  game.timer = setInterval(() => {
-    game.timeLeft--;
-    io.emit('timer_tick', { timeLeft: game.timeLeft });
-
-    // Seul le timer ferme la question automatiquement
-    // (le host peut aussi fermer manuellement via skip_question)
-    if (game.timeLeft <= 0) {
-      clearInterval(game.timer);
-      revealQuestion();
+  // Auto-skip after 30s if no one buzzed correctly
+  room.timer = setInterval(() => {
+    room.timeLeft--;
+    io.to(room.code).emit('timer_tick', { timeLeft: room.timeLeft });
+    if (room.timeLeft <= 0) {
+      clearInterval(room.timer);
+      room.timer = null;
+      // If nobody found, reveal answer
+      revealSong(room, false);
     }
   }, 1000);
 }
 
-function revealQuestion() {
-  if (game.phase !== 'question') return; // éviter double appel
-  game.phase = 'reveal';
-  const q = QUESTIONS[game.qIdx];
-  io.emit('question_end', {
-    correctIndex: q.correct,
-    fact:         q.fact,
-    scores:       leaderboard(10)
+function revealSong(room, found) {
+  if (room.timer) { clearInterval(room.timer); room.timer = null; }
+  io.to(room.code).emit('song_revealed', {
+    correctTitle: room.currentSong.title,
+    category: room.currentSong.category,
+    found,
+    scores: getScores(room),
   });
-  setTimeout(() => {
-    game.qIdx++;
-    if (game.qIdx >= QUESTIONS.length) endGame();
-    else startQuestion();
-  }, 16000); // 16s : laisse le temps de lire la réponse + le classement
 }
 
-function endGame() {
-  game.phase = 'gameover';
-  io.emit('game_over', { leaderboard: leaderboard() });
+function endGame(room) {
+  room.phase = 'gameover';
+  if (room.timer) { clearInterval(room.timer); room.timer = null; }
+  io.to(room.code).emit('game_over', { podium: getPodium(room) });
 }
 
-// ─── Socket ───────────────────────────────────────────────────────────────────
+function broadcastBuzzOrder(room) {
+  const active = room.buzzOrder[room.currentBuzzIndex];
+  io.to(room.code).emit('player_buzzed', {
+    buzzOrder: room.buzzOrder.map((p, i) => ({
+      playerId: p.playerId,
+      pseudo: p.pseudo,
+      color: p.color,
+      pointsIfCorrect: i === 0 ? 3 : i === 1 ? 2 : 1,
+    })),
+    activeBuzzerId: active ? active.playerId : null,
+  });
+}
+
+// ─── Socket.IO ───────────────────────────────────────────────────────────────
 io.on('connection', socket => {
 
-  // ── Host ──
-  socket.on('register_host', () => {
-    hostSocketId = socket.id;
-    socket.emit('host_registered', {
-      roomCode: game.roomCode,
-      phase:    game.phase,
-      players:  players.map(p => ({ id: p.socketId, nickname: p.nickname, avatarId: p.avatarId }))
+  // Create room (becomes host)
+  socket.on('create_room', ({ pseudo }) => {
+    if (!pseudo || !pseudo.trim()) return socket.emit('error', { message: 'Pseudo requis.' });
+
+    const room = makeRoom(socket.id);
+    rooms.set(room.code, room);
+    socket.join(room.code);
+
+    socket.emit('room_joined', {
+      roomCode: room.code,
+      isHost: true,
+      players: [],
+      colors: {},
+      categories: ALL_CATEGORIES,
     });
   });
 
-  // ── Rejoindre (depuis join.html) ──
-  socket.on('join_room', ({ roomCode, nickname, avatarId }) => {
-    if (roomCode !== game.roomCode)
-      return socket.emit('join_error', { message: 'Code de salle invalide.' });
-    if (!nickname || !nickname.trim())
-      return socket.emit('join_error', { message: 'Pseudo requis.' });
-    if (!AVATARS.find(a => a.id === avatarId))
-      return socket.emit('join_error', { message: 'Avatar invalide.' });
+  // Join existing room
+  socket.on('join_room', ({ code, pseudo }) => {
+    const room = rooms.get(code ? code.toUpperCase() : '');
+    if (!room) return socket.emit('error', { message: 'Code de salle invalide.' });
+    if (!pseudo || !pseudo.trim()) return socket.emit('error', { message: 'Pseudo requis.' });
+    if (room.phase !== 'lobby') return socket.emit('error', { message: 'La partie a déjà commencé.' });
+    if (room.players.length >= MAX_PLAYERS) return socket.emit('error', { message: 'Salle pleine (max 10 joueurs).' });
 
-    const name = nickname.trim();
+    const name = pseudo.trim();
+    if (room.players.find(p => p.pseudo === name)) return socket.emit('error', { message: 'Ce pseudo est déjà pris.' });
 
-    // Reconnexion (même pseudo)
-    const existing = players.find(p => p.nickname === name);
-    if (existing) {
-      takenAvatars.delete(existing.avatarId);
-      existing.socketId = socket.id;
-      existing.avatarId = avatarId;
-      takenAvatars.add(avatarId);
-      socket.emit('join_success', { nickname: name, avatarId, score: existing.score });
-      pushAvatarUpdate();
-      pushPlayerList();
-      return;
+    const color = PLAYER_COLORS[room.colorIndex % PLAYER_COLORS.length];
+    room.colorIndex++;
+
+    const player = {
+      socketId: socket.id,
+      playerId: socket.id,
+      pseudo: name,
+      color,
+      score: 0,
+      buzzCount: 0,
+      correctCount: 0,
+      delta: 0,
+    };
+    room.players.push(player);
+    socket.join(room.code);
+    resetInactivity(room);
+
+    const colors = {};
+    room.players.forEach(p => { colors[p.playerId] = p.color; });
+
+    socket.emit('room_joined', {
+      roomCode: room.code,
+      isHost: false,
+      playerId: player.playerId,
+      color,
+      players: room.players.map(p => ({ playerId: p.playerId, pseudo: p.pseudo, color: p.color })),
+      colors,
+    });
+
+    io.to(room.code).emit('player_joined', {
+      players: room.players.map(p => ({ playerId: p.playerId, pseudo: p.pseudo, color: p.color })),
+      colors,
+    });
+  });
+
+  // Start game
+  socket.on('start_game', ({ roomCode, categories }) => {
+    const room = rooms.get(roomCode);
+    if (!room || room.hostSocketId !== socket.id) return;
+    if (room.players.length < 1) return socket.emit('error', { message: 'Au moins 1 joueur requis.' });
+
+    const cats = Array.isArray(categories) && categories.length > 0 ? categories : ALL_CATEGORIES;
+    const filtered = SONGS.filter(s => cats.includes(s.category));
+    if (filtered.length === 0) return socket.emit('error', { message: 'Aucune chanson dans les catégories sélectionnées.' });
+
+    room.playlist = shuffle(filtered);
+    room.songIndex = -1;
+    room.phase = 'playing';
+    room.players.forEach(p => { p.score = 0; p.buzzCount = 0; p.correctCount = 0; p.delta = 0; });
+
+    startNextSong(room);
+  });
+
+  // Player buzz
+  socket.on('buzz', ({ roomCode }) => {
+    const room = rooms.get(roomCode);
+    if (!room || room.phase !== 'playing') return;
+    if (socket.id === room.hostSocketId) return;
+
+    const player = room.players.find(p => p.socketId === socket.id);
+    if (!player) return;
+
+    // Already buzzed this round
+    if (room.buzzOrder.find(p => p.playerId === player.playerId)) return;
+
+    player.buzzCount++;
+    room.buzzOrder.push(player);
+
+    // Stop timer on first buzz
+    if (room.buzzOrder.length === 1 && room.timer) {
+      clearInterval(room.timer);
+      room.timer = null;
     }
 
-    if (game.phase !== 'waiting')
-      return socket.emit('join_error', { message: 'La partie a déjà commencé.' });
-    if (takenAvatars.has(avatarId))
-      return socket.emit('join_error', { message: 'Cet avatar est déjà pris !' });
-
-    const player = { socketId: socket.id, nickname: name, avatarId, score: 0, answered: false, lastPoints: 0 };
-    players.push(player);
-    takenAvatars.add(avatarId);
-
-    socket.emit('join_success', { nickname: name, avatarId, score: 0 });
-    pushAvatarUpdate();
-    pushPlayerList();
+    broadcastBuzzOrder(room);
   });
 
-  // ── Reconnexion (depuis play.html) ──
-  socket.on('rejoin', ({ nickname, avatarId }) => {
-    const player = players.find(p => p.nickname === nickname && p.avatarId === avatarId);
-    if (!player)
-      return socket.emit('join_error', { message: 'Session expirée. Rejoins la partie.' });
+  // Host validates answer
+  socket.on('validate', ({ roomCode, correct }) => {
+    const room = rooms.get(roomCode);
+    if (!room || room.hostSocketId !== socket.id) return;
+    if (room.buzzOrder.length === 0) return;
 
-    player.socketId = socket.id;
-    socket.emit('rejoin_success', { nickname, avatarId, score: player.score, phase: game.phase });
+    const active = room.buzzOrder[room.currentBuzzIndex];
+    if (!active) return;
 
-    if (game.phase === 'question') {
-      const q = QUESTIONS[game.qIdx];
-      socket.emit('question_start', {
-        id: q.id, index: game.qIdx, total: QUESTIONS.length,
-        celebrity: q.celebrity, question: q.question, options: q.options,
-        photoUrl: photoCache[q.id] || null
-      });
-      socket.emit('timer_tick', { timeLeft: game.timeLeft });
-      if (player.answered) socket.emit('already_answered', {});
-    } else if (game.phase === 'gameover') {
-      socket.emit('game_over', { leaderboard: leaderboard() });
-    }
-    // phase 'starting' → le joueur attend, question_start arrivera via io.emit
-  });
+    const player = room.players.find(p => p.playerId === active.playerId);
+    if (!player) return;
 
-  // ── Démarrer ──
-  socket.on('start_game', () => {
-    if (socket.id !== hostSocketId) return;
-    if (players.length < 1) return;
+    if (correct) {
+      const pts = room.currentBuzzIndex === 0 ? 3 : room.currentBuzzIndex === 1 ? 2 : 1;
+      player.score += pts;
+      player.delta = pts;
+      player.correctCount++;
 
-    players.forEach(p => { p.score = 0; });
-    game.qIdx  = 0;
-
-    // *** FIX CRITIQUE : changer la phase AVANT d'émettre game_start ***
-    // Empêche la suppression des joueurs lors de leur déconnexion de join.html
-    game.phase = 'starting';
-
-    io.emit('game_start', {});
-
-    // Délai 4s pour laisser tous les joueurs charger play.html et se reconnecter
-    setTimeout(startQuestion, 4000);
-  });
-
-  // ── Répondre ──
-  socket.on('submit_answer', ({ questionId, answerIndex, timeLeft }) => {
-    if (game.phase !== 'question') return;
-    const player = players.find(p => p.socketId === socket.id);
-    if (!player || player.answered) return;
-    const q = QUESTIONS[game.qIdx];
-    if (q.id !== questionId) return;
-
-    player.answered  = true;
-    const correct    = answerIndex === q.correct;
-    const points     = correct ? Math.max(100, Math.round(1000 * (Math.max(0, timeLeft) / 20))) : 0;
-    player.score    += points;
-    player.lastPoints = points;
-    answerDist[answerIndex] = (answerDist[answerIndex] || 0) + 1;
-
-    socket.emit('answer_received', { correct, points, answerIndex });
-    if (hostSocketId) io.to(hostSocketId).emit('answer_update', { distribution: answerDist });
-  });
-
-  // ── Skip question ──
-  socket.on('skip_question', () => {
-    if (socket.id !== hostSocketId) return;
-    if (game.phase !== 'question') return;
-    clearInterval(game.timer);
-    revealQuestion();
-  });
-
-  // ── Fin forcée ──
-  socket.on('force_end_quiz', () => {
-    if (socket.id !== hostSocketId) return;
-    clearInterval(game.timer);
-    endGame();
-  });
-
-  // ── Reset ──
-  socket.on('reset_game', () => {
-    if (socket.id !== hostSocketId) return;
-    clearInterval(game.timer);
-    players = [];
-    takenAvatars.clear();
-    game.phase    = 'waiting';
-    game.qIdx     = 0;
-    game.timeLeft = 0;
-    game.roomCode = mkCode();
-    answerDist    = [0, 0, 0, 0];
-    io.emit('game_reset', { roomCode: game.roomCode });
-    pushAvatarUpdate();
-  });
-
-  // ── Déconnexion ──
-  socket.on('disconnect', () => {
-    if (socket.id === hostSocketId) hostSocketId = null;
-
-    const idx = players.findIndex(p => p.socketId === socket.id);
-    if (idx === -1) return;
-
-    const player = players[idx];
-
-    if (game.phase === 'waiting') {
-      // Salle d'attente : supprimer le joueur et libérer l'avatar
-      takenAvatars.delete(player.avatarId);
-      players.splice(idx, 1);
-      pushAvatarUpdate();
-      pushPlayerList();
+      io.to(room.code).emit('score_update', { scores: getScores(room) });
+      revealSong(room, true);
     } else {
-      // Partie en cours (starting/question/reveal/gameover) :
-      // garder le joueur et son score, juste marquer déconnecté
-      player.socketId = null;
+      player.score = Math.max(0, player.score - 1);
+      player.delta = -1;
+
+      io.to(room.code).emit('score_update', { scores: getScores(room) });
+
+      room.currentBuzzIndex++;
+      if (room.currentBuzzIndex < room.buzzOrder.length) {
+        // Next buzzer gets a chance
+        broadcastBuzzOrder(room);
+      } else {
+        // Everyone got it wrong, restart timer
+        room.timeLeft = Math.max(room.timeLeft, 10);
+        room.timer = setInterval(() => {
+          room.timeLeft--;
+          io.to(room.code).emit('timer_tick', { timeLeft: room.timeLeft });
+          if (room.timeLeft <= 0) {
+            clearInterval(room.timer);
+            room.timer = null;
+            revealSong(room, false);
+          }
+        }, 1000);
+
+        // Re-enable buzzers
+        io.to(room.code).emit('player_buzzed', { buzzOrder: [], activeBuzzerId: null });
+      }
     }
+
+    resetInactivity(room);
+  });
+
+  // Host bonus category
+  socket.on('bonus_cat', ({ roomCode }) => {
+    const room = rooms.get(roomCode);
+    if (!room || room.hostSocketId !== socket.id) return;
+    const active = room.buzzOrder[room.currentBuzzIndex - 1] || room.buzzOrder[room.currentBuzzIndex];
+    if (!active) return;
+    const player = room.players.find(p => p.playerId === active.playerId);
+    if (!player) return;
+    player.score++;
+    player.delta = (player.delta || 0) + 1;
+    io.to(room.code).emit('score_update', { scores: getScores(room) });
+  });
+
+  // Host next song
+  socket.on('next_song', ({ roomCode }) => {
+    const room = rooms.get(roomCode);
+    if (!room || room.hostSocketId !== socket.id) return;
+    if (room.timer) { clearInterval(room.timer); room.timer = null; }
+    startNextSong(room);
+  });
+
+  // Host replay
+  socket.on('replay', ({ roomCode, categories }) => {
+    const room = rooms.get(roomCode);
+    if (!room || room.hostSocketId !== socket.id) return;
+
+    const cats = Array.isArray(categories) && categories.length > 0 ? categories : ALL_CATEGORIES;
+    const filtered = SONGS.filter(s => cats.includes(s.category));
+    room.playlist = shuffle(filtered);
+    room.songIndex = -1;
+    room.phase = 'playing';
+    room.players.forEach(p => { p.score = 0; p.buzzCount = 0; p.correctCount = 0; p.delta = 0; });
+
+    startNextSong(room);
+  });
+
+  // Disconnect
+  socket.on('disconnect', () => {
+    rooms.forEach((room, code) => {
+      if (room.hostSocketId === socket.id) {
+        io.to(code).emit('error', { message: "L'hôte a quitté la partie." });
+        destroyRoom(code);
+        return;
+      }
+      const idx = room.players.findIndex(p => p.socketId === socket.id);
+      if (idx !== -1) {
+        if (room.phase === 'lobby') {
+          room.players.splice(idx, 1);
+          io.to(code).emit('player_joined', {
+            players: room.players.map(p => ({ playerId: p.playerId, pseudo: p.pseudo, color: p.color })),
+            colors: Object.fromEntries(room.players.map(p => [p.playerId, p.color])),
+          });
+        } else {
+          room.players[idx].socketId = null;
+        }
+      }
+    });
   });
 });
 
-// ─── Pré-chargement des photos Wikipedia ─────────────────────────────────────
-async function prefetchPhotos() {
-  console.log('\n📸 Chargement des photos Wikipedia...');
-  await Promise.all(QUESTIONS.map(async q => {
-    const url = await fetchWikiPhoto(q.wikipediaTitle);
-    if (url) {
-      photoCache[q.id] = url;
-      console.log(`  ✅ ${q.celebrity}`);
-    } else {
-      console.log(`  ❌ ${q.celebrity} — photo introuvable`);
-    }
-  }));
-  console.log('📸 Photos prêtes.\n');
-}
-
-// ─── Démarrage ───────────────────────────────────────────────────────────────
-server.listen(PORT, async () => {
-  console.log(`\n🎯 GUILTY? démarré sur le port ${PORT}`);
-  console.log(`   Host : ${PUBLIC_URL}/host`);
-  console.log(`   Join : ${PUBLIC_URL}/join\n`);
-  await prefetchPhotos();
+// ─── Start ───────────────────────────────────────────────────────────────────
+server.listen(PORT, () => {
+  console.log(`\n🎵 Blind Test Cartoons démarré sur le port ${PORT}`);
+  console.log(`   ${PUBLIC_URL}\n`);
 
   if (process.env.PUBLIC_URL) {
     setInterval(() => {
-      fetch(`${PUBLIC_URL}/health`)
-        .then(() => console.log('[keep-alive] ping OK'))
-        .catch(() => {});
+      fetch(`${PUBLIC_URL}/health`).catch(() => {});
     }, 14 * 60 * 1000);
-    console.log('   Keep-alive actif\n');
   }
 });
