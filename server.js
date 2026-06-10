@@ -332,7 +332,7 @@ io.on('connection', socket => {
       io.to(room.code).emit('score_update', { scores: getScores(room) });
       revealSong(room, true);
     } else {
-      player.score = Math.max(0, player.score - 1);
+      player.score -= 1;
       player.delta = -1;
 
       io.to(room.code).emit('score_update', { scores: getScores(room) });
