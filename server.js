@@ -68,6 +68,7 @@ function makeRoom(hostSocketId) {
     timer: null,
     timeLeft: 0,
     inactivityTimer: null,
+    hostReconnectTimer: null, // grace period when host disconnects
     categories: [...ALL_CATEGORIES],
     colorIndex: 0,
   };
@@ -89,6 +90,7 @@ function destroyRoom(code) {
   if (!room) return;
   if (room.timer) clearInterval(room.timer);
   if (room.inactivityTimer) clearTimeout(room.inactivityTimer);
+  if (room.hostReconnectTimer) clearTimeout(room.hostReconnectTimer);
   rooms.delete(code);
 }
 
@@ -386,6 +388,12 @@ io.on('connection', socket => {
 
     socket.join(roomCode);
 
+    // Cancel host grace-period timer if it's running
+    if (room.hostReconnectTimer) {
+      clearTimeout(room.hostReconnectTimer);
+      room.hostReconnectTimer = null;
+    }
+
     const base = {
       roomCode,
       phase: room.phase,
@@ -454,8 +462,12 @@ io.on('connection', socket => {
   socket.on('disconnect', () => {
     rooms.forEach((room, code) => {
       if (room.hostSocketId === socket.id) {
-        io.to(code).emit('error', { message: "L'hôte a quitté la partie." });
-        destroyRoom(code);
+        // Grace period: 20s for host to reconnect (page refresh)
+        room.hostSocketId = null;
+        room.hostReconnectTimer = setTimeout(() => {
+          io.to(code).emit('error', { message: "L'hôte a quitté la partie." });
+          destroyRoom(code);
+        }, 20000);
         return;
       }
       const idx = room.players.findIndex(p => p.socketId === socket.id);

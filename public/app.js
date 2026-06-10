@@ -21,8 +21,15 @@ function saveSession() {
     pseudo:    state.pseudo,
     color:     state.color,
   }));
+  // Host: also keep room code in URL so refresh auto-rejoins
+  if (state.isHost && state.roomCode) {
+    history.replaceState(null, '', `?host=${state.roomCode}`);
+  }
 }
-function clearSession() { localStorage.removeItem('btSession'); }
+function clearSession() {
+  localStorage.removeItem('btSession');
+  history.replaceState(null, '', '/');
+}
 
 // ── State ─────────────────────────────────────────────────
 let socket, ytPlayer, ytReady = false, ytErrorTimer = null;
@@ -689,22 +696,33 @@ wireButtons();
 
 // Try to rejoin an existing session after page refresh
 (function tryRejoin() {
+  // Priority 1: URL param ?host=CODE  (host tab refresh)
+  const hostCode = new URLSearchParams(location.search).get('host');
+  if (hostCode) {
+    const saved = (() => { try { return JSON.parse(localStorage.getItem('btSession')); } catch { return null; } })();
+    state.pseudo  = (saved && saved.pseudo) || 'Hôte';
+    state.isHost  = true;
+    connectSocket();
+    socket.once('connect', () => socket.emit('rejoin_room', { roomCode: hostCode, isHost: true }));
+    return;
+  }
+
+  // Priority 2: localStorage  (player refresh)
   let saved;
   try { saved = JSON.parse(localStorage.getItem('btSession')); } catch { return; }
-  if (!saved || !saved.roomCode) return;
+  if (!saved || !saved.roomCode || saved.isHost) return; // host uses URL path above
 
-  // Restore state fields needed before socket events arrive
-  state.pseudo  = saved.pseudo  || '';
-  state.isHost  = saved.isHost  || false;
+  state.pseudo   = saved.pseudo  || '';
+  state.isHost   = false;
   state.playerId = saved.playerId || null;
-  state.color   = saved.color   || '';
+  state.color    = saved.color   || '';
 
   connectSocket();
   socket.once('connect', () => {
     socket.emit('rejoin_room', {
       roomCode: saved.roomCode,
       playerId: saved.playerId,
-      isHost:   saved.isHost,
+      isHost:   false,
     });
   });
 })();
