@@ -4,7 +4,7 @@ const SONGS = [
   //  🇫🇷  FRANCO-EUROPÉEN
   // ══════════════════════════════════════════════════════
   { id: 1,  title: "Oggy et les Cafards",            youtubeId: "ybI6UecpU8w", startAt: 5, category: "🇫🇷 Franco-Européen" },
-  { id: 2,  title: "Les Zinzins de l'Espace",         youtubeId: "mbd2linSia4", startAt: 5, category: "🇫🇷 Franco-Européen" },
+  { id: 2,  title: "Les Zinzins de l'Espace",         youtubeId: "LGp9dxP5dqk", startAt: 5, category: "🇫🇷 Franco-Européen" },
   { id: 3,  title: "Totally Spies (VF)",              youtubeId: "U6lvy7ZFZ5M", startAt: 5, category: "🇫🇷 Franco-Européen" },
   { id: 4,  title: "Code Lyoko",                      youtubeId: "lLwk_lpvL44", startAt: 5, category: "🇫🇷 Franco-Européen" },
   { id: 5,  title: "Wakfu",                           youtubeId: "cp1J7CJ7A8w", startAt: 5, category: "🇫🇷 Franco-Européen" },
@@ -15,7 +15,7 @@ const SONGS = [
   { id: 10, title: "Skyland",                         youtubeId: "bA7TKjmWYFU", startAt: 5, category: "🇫🇷 Franco-Européen" },
   { id: 11, title: "Martin Mystère (VF)",             youtubeId: "LTEHU3w-Jcc", startAt: 5, category: "🇫🇷 Franco-Européen" },
   { id: 12, title: "Mon Ami Marsupilami (VF)",        youtubeId: "y9GOU53KzUA", startAt: 5, category: "🇫🇷 Franco-Européen" },
-  { id: 13, title: "Monster Buster Club (VF)",        youtubeId: "nkP3IG2M7SQ", startAt: 5, category: "🇫🇷 Franco-Européen" },
+  { id: 13, title: "Monster Buster Club (VF)",        youtubeId: "nkP3IG2M7SQ", startAt: 10, category: "🇫🇷 Franco-Européen" },
 
   // ══════════════════════════════════════════════════════
   //  ⚽  SPORT & URBAN
@@ -56,7 +56,7 @@ const SONGS = [
   // ══════════════════════════════════════════════════════
   //  🎌  ANIME VF
   // ══════════════════════════════════════════════════════
-  { id: 38, title: "Naruto — ROCKS (OP1)",             youtubeId: "4t__wczfpRI", startAt: 5,  category: "🎌 Anime VF" },
+  { id: 38, title: "Naruto — ROCKS (OP1)",             youtubeId: "GcgDuB6ShyY", startAt: 5,  category: "🎌 Anime VF" },
   { id: 39, title: "Dragon Ball Z — Cha-La Head-Cha-La", youtubeId: "hcdDnwm4pAE", startAt: 5, category: "🎌 Anime VF" },
   { id: 40, title: "One Piece — We Are! (OP1)",       youtubeId: "TFDDwEQhexs", startAt: 30, category: "🎌 Anime VF" },
   { id: 41, title: "Pokémon (VF)",                    youtubeId: "YhN4oAS3O4c", startAt: 5,  category: "🎌 Anime VF" },
