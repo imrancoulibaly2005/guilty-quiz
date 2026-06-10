@@ -59,7 +59,7 @@ const SONGS = [
   { id: 38, title: "Naruto — ROCKS (OP1)",             youtubeId: "4t__wczfpRI", startAt: 5,  category: "🎌 Anime VF" },
   { id: 39, title: "Dragon Ball Z — Cha-La Head-Cha-La", youtubeId: "hcdDnwm4pAE", startAt: 5, category: "🎌 Anime VF" },
   { id: 40, title: "One Piece — We Are! (OP1)",       youtubeId: "TFDDwEQhexs", startAt: 30, category: "🎌 Anime VF" },
-  { id: 41, title: "Pokémon — Mezase Pokémon Master", youtubeId: "JbLNEgNUM3M", startAt: 5,  category: "🎌 Anime VF" },
+  { id: 41, title: "Pokémon (VF)",                    youtubeId: "YhN4oAS3O4c", startAt: 5,  category: "🎌 Anime VF" },
   { id: 42, title: "Yu-Gi-Oh! (VF)",                 youtubeId: "ErhzuwW9uGs", startAt: 5,  category: "🎌 Anime VF" },
   { id: 43, title: "Fairy Tail — Snow Fairy (OP1)",   youtubeId: "j9SFjzhnkzI", startAt: 5,  category: "🎌 Anime VF" },
   { id: 44, title: "Beyblade — Fighting Spirits (OP1)", youtubeId: "ie8ddcRoaSM", startAt: 5, category: "🎌 Anime VF" },

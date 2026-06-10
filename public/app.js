@@ -192,6 +192,17 @@ function renderBuzzList(buzzOrder, activeBuzzerId) {
   }).join('');
 
   if (activeBuzzerId) {
+    const active = buzzOrder.find(p => p.playerId === activeBuzzerId);
+    if (active) {
+      $('buzzNameDisplay').style.color = active.color;
+      $('buzzNameDisplay').innerHTML =
+        `<div class="buzz-name-pseudo" style="color:${active.color}">${escHtml(active.pseudo)}</div>` +
+        `<div class="buzz-name-pts">⚡ +${active.pointsIfCorrect} pts si correct</div>`;
+      // re-trigger animation
+      $('buzzNameDisplay').style.animation = 'none';
+      void $('buzzNameDisplay').offsetWidth;
+      $('buzzNameDisplay').style.animation = '';
+    }
     $('hostValidation').style.display = 'flex';
     $('hostValidation').style.flexDirection = 'column';
   } else {
@@ -636,11 +647,6 @@ function wireButtons() {
   // Host: wrong
   $('btnWrong').addEventListener('click', () => {
     socket.emit('validate', { roomCode: state.roomCode, correct: false });
-  });
-
-  // Host: bonus cat
-  $('btnBonusCat').addEventListener('click', () => {
-    socket.emit('bonus_cat', { roomCode: state.roomCode });
   });
 
   // Podium: replay
