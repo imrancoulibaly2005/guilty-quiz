@@ -196,16 +196,21 @@ function renderBuzzList(buzzOrder, activeBuzzerId) {
 
   if (activeBuzzerId) {
     const active = buzzOrder.find(p => p.playerId === activeBuzzerId);
+    const isMusic = ['🎤 Rap FR', '🇺🇸 Rap US', '🎶 Variétés FR'].includes(state.currentCategory);
     if (active) {
       $('buzzNameDisplay').style.color = active.color;
+      const ptsLine = isMusic
+        ? `⚡ +${active.pointsIfCorrect} pts · 🎯 +${active.pointsIfCorrect + 1} titre+artiste`
+        : `⚡ +${active.pointsIfCorrect} pts`;
       $('buzzNameDisplay').innerHTML =
         `<div class="buzz-name-pseudo" style="color:${active.color}">${escHtml(active.pseudo)}</div>` +
-        `<div class="buzz-name-pts">⚡ +${active.pointsIfCorrect} pts · 🎯 +${active.pointsIfCorrect + 1} titre+artiste</div>`;
-      // re-trigger animation
+        `<div class="buzz-name-pts">${ptsLine}</div>`;
       $('buzzNameDisplay').style.animation = 'none';
       void $('buzzNameDisplay').offsetWidth;
       $('buzzNameDisplay').style.animation = '';
     }
+    $('btnBothCorrect').style.display = isMusic ? 'block' : 'none';
+    $('btnCorrect').textContent = isMusic ? '✅ Titre seul' : '✅ Bonne réponse';
     $('hostValidation').style.display = 'flex';
     $('hostValidation').style.flexDirection = 'column';
   } else {
@@ -419,6 +424,7 @@ function connectSocket() {
       $('hostRoundBanner').textContent   = roundLabel;
       $('hostCategoryBadge').textContent = data.category;
       $('hostSongTitle').textContent     = data.titleForHost;
+      state.currentCategory              = data.category;
       setTimer(ROUND_DURATION);
       renderBuzzList([], null);
       $('hostValidation').style.display  = 'none';
