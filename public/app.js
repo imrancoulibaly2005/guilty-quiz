@@ -10,7 +10,8 @@ const ALL_CATEGORIES = [
   { name: '🕹️ Classiques 80-90s', count: 5  },
   { name: '📺 CN, Nick & Disney',  count: 14 },
   { name: '🎌 Anime VF',           count: 9  },
-  { name: '🎤 Rap FR',             count: 12 },
+  { name: '🎤 Rap FR',             count: 15 },
+  { name: '🎶 Variétés FR',        count: 11 },
   { name: '🇺🇸 Rap US',            count: 7  },
 ];
 
@@ -199,7 +200,7 @@ function renderBuzzList(buzzOrder, activeBuzzerId) {
       $('buzzNameDisplay').style.color = active.color;
       $('buzzNameDisplay').innerHTML =
         `<div class="buzz-name-pseudo" style="color:${active.color}">${escHtml(active.pseudo)}</div>` +
-        `<div class="buzz-name-pts">⚡ +${active.pointsIfCorrect} pts si correct</div>`;
+        `<div class="buzz-name-pts">⚡ +${active.pointsIfCorrect} pts · 🎯 +${active.pointsIfCorrect + 1} titre+artiste</div>`;
       // re-trigger animation
       $('buzzNameDisplay').style.animation = 'none';
       void $('buzzNameDisplay').offsetWidth;
@@ -641,9 +642,14 @@ function wireButtons() {
     socket.emit('next_song', { roomCode: state.roomCode });
   });
 
-  // Host: correct
+  // Host: correct (title only)
   $('btnCorrect').addEventListener('click', () => {
-    socket.emit('validate', { roomCode: state.roomCode, correct: true });
+    socket.emit('validate', { roomCode: state.roomCode, correct: true, bonus: false });
+  });
+
+  // Host: correct title + artist
+  $('btnBothCorrect').addEventListener('click', () => {
+    socket.emit('validate', { roomCode: state.roomCode, correct: true, bonus: true });
   });
 
   // Host: wrong

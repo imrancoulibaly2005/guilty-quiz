@@ -81,6 +81,24 @@ const SONGS = [
   { id: 56, title: "PNL — Deux Frères",                youtubeId: "vNpl-M3_9_o", startAt: 5, category: "🎤 Rap FR" },
   { id: 57, title: "Nekfeu — On Verra",                youtubeId: "YltjliK0ZeA", startAt: 5, category: "🎤 Rap FR" },
   { id: 58, title: "Kaaris — Goulag",                  youtubeId: "OoaBn1V4Krw", startAt: 5, category: "🎤 Rap FR" },
+  { id: 66, title: "Indila — Dernière Danse",          youtubeId: "K5KAc5CoCuk", startAt: 5, category: "🎤 Rap FR" },
+  { id: 67, title: "Zaho — C'est chelou",              youtubeId: "pHy0LkdpxSU", startAt: 5, category: "🎤 Rap FR" },
+  { id: 68, title: "Colonel Reyel — Aurélie",          youtubeId: "AC_a98Yd_9Q", startAt: 5, category: "🎤 Rap FR" },
+
+  // ══════════════════════════════════════════════════════
+  //  🎶  VARIÉTÉS FR
+  // ══════════════════════════════════════════════════════
+  { id: 69, title: "Plastic Bertrand — Ça plane pour moi", youtubeId: "e3HkYsB1JN4", startAt: 5, category: "🎶 Variétés FR" },
+  { id: 70, title: "Claude François — Alexandrie Alexandra", youtubeId: "ZRaOzXS1slI", startAt: 5, category: "🎶 Variétés FR" },
+  { id: 71, title: "Dalida — Mourir sur scène",         youtubeId: "X16fYEugii4", startAt: 5, category: "🎶 Variétés FR" },
+  { id: 72, title: "Joe Dassin — Et si tu n'existais pas", youtubeId: "fVCAFvIq_F8", startAt: 5, category: "🎶 Variétés FR" },
+  { id: 73, title: "Gainsbourg & Birkin — Je t'aime… moi non plus", youtubeId: "GlpDf6XX_j0", startAt: 5, category: "🎶 Variétés FR" },
+  { id: 74, title: "France Gall — Ella elle l'a",       youtubeId: "kCN2VlZNbXs", startAt: 5, category: "🎶 Variétés FR" },
+  { id: 75, title: "Michel Sardou — La Maladie d'amour", youtubeId: "6YJ_V5V9Zek", startAt: 5, category: "🎶 Variétés FR" },
+  { id: 76, title: "Daniel Balavoine — L'Aziza",        youtubeId: "O4ACXQxCgc8", startAt: 5, category: "🎶 Variétés FR" },
+  { id: 77, title: "Téléphone — Un autre monde",        youtubeId: "xqnZPHo6qx4", startAt: 5, category: "🎶 Variétés FR" },
+  { id: 78, title: "Jean-Jacques Goldman — Il suffira d'un signe", youtubeId: "Vav-2sgJ4MI", startAt: 5, category: "🎶 Variétés FR" },
+  { id: 79, title: "Indochine — L'Aventurier",          youtubeId: "M7X6oYg6iro", startAt: 5, category: "🎶 Variétés FR" },
 
   // ══════════════════════════════════════════════════════
   //  🇺🇸  RAP US

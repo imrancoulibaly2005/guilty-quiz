@@ -312,7 +312,7 @@ io.on('connection', socket => {
   });
 
   // Host validates answer
-  socket.on('validate', ({ roomCode, correct }) => {
+  socket.on('validate', ({ roomCode, correct, bonus }) => {
     const room = rooms.get(roomCode);
     if (!room || room.hostSocketId !== socket.id) return;
     if (room.buzzOrder.length === 0) return;
@@ -324,7 +324,7 @@ io.on('connection', socket => {
     if (!player) return;
 
     if (correct) {
-      const pts = room.currentBuzzIndex === 0 ? 3 : room.currentBuzzIndex === 1 ? 2 : 1;
+      const pts = (room.currentBuzzIndex === 0 ? 3 : room.currentBuzzIndex === 1 ? 2 : 1) + (bonus ? 1 : 0);
       player.score += pts;
       player.delta = pts;
       player.correctCount++;
