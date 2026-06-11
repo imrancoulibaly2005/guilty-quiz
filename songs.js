@@ -65,6 +65,33 @@ const SONGS = [
   { id: 44, title: "Beyblade Metal Fusion (VF)",       youtubeId: "Yw9G9glw9lE", startAt: 5, category: "🎌 Anime VF" },
   { id: 45, title: "Sonic le Rebelle (VF)",            youtubeId: "n4RUrBbvWHA", startAt: 5,  category: "🎌 Anime VF" },
   { id: 46, title: "Shaman King — Over Soul (OP1)",   youtubeId: "IHfmLbtANz0", startAt: 5,  category: "🎌 Anime VF" },
+
+  // ══════════════════════════════════════════════════════
+  //  🎤  RAP FR
+  // ══════════════════════════════════════════════════════
+  { id: 47, title: "Damso — Dieu ne ment jamais",      youtubeId: "jsJRojGBpWw", startAt: 5, category: "🎤 Rap FR" },
+  { id: 48, title: "Damso — Mosaïque Solitaire",       youtubeId: "q2c7Ie1Sz1Q", startAt: 5, category: "🎤 Rap FR" },
+  { id: 49, title: "Renaud — Laisse béton",            youtubeId: "6uvdSHkKj00", startAt: 5, category: "🎤 Rap FR" },
+  { id: 50, title: "Sheryfa Luna — Il avait les mots", youtubeId: "vGxOs9OrLYk", startAt: 5, category: "🎤 Rap FR" },
+  { id: 51, title: "Ninho — Goutte d'eau",             youtubeId: "0uLp-tejcSo", startAt: 5, category: "🎤 Rap FR" },
+  { id: 52, title: "Leto ft. Ninho — Macaroni",        youtubeId: "Hpoo6R1JyKQ", startAt: 5, category: "🎤 Rap FR" },
+  { id: 53, title: "Leto — Freestyle Virus",           youtubeId: "d6_6jmePUHo", startAt: 5, category: "🎤 Rap FR" },
+  { id: 54, title: "Niska — PSG",                      youtubeId: "j_s6RFAikzQ", startAt: 5, category: "🎤 Rap FR" },
+  { id: 55, title: "Booba — Jour de paye",             youtubeId: "PgnqVuNLtac", startAt: 5, category: "🎤 Rap FR" },
+  { id: 56, title: "PNL — Deux Frères",                youtubeId: "vNpl-M3_9_o", startAt: 5, category: "🎤 Rap FR" },
+  { id: 57, title: "Nekfeu — On Verra",                youtubeId: "YltjliK0ZeA", startAt: 5, category: "🎤 Rap FR" },
+  { id: 58, title: "Kaaris — Goulag",                  youtubeId: "OoaBn1V4Krw", startAt: 5, category: "🎤 Rap FR" },
+
+  // ══════════════════════════════════════════════════════
+  //  🇺🇸  RAP US
+  // ══════════════════════════════════════════════════════
+  { id: 59, title: "Macklemore — Can't Hold Us",       youtubeId: "2zNSgSzhBfM", startAt: 5, category: "🇺🇸 Rap US" },
+  { id: 60, title: "Eminem ft. Rihanna — The Monster", youtubeId: "EHkozMIXZ8w", startAt: 5, category: "🇺🇸 Rap US" },
+  { id: 61, title: "Eminem — Lose Yourself",           youtubeId: "7YuAzR2XVAM", startAt: 5, category: "🇺🇸 Rap US" },
+  { id: 62, title: "Jay-Z ft. Alicia Keys — Empire State of Mind", youtubeId: "vk6014HuxcE", startAt: 5, category: "🇺🇸 Rap US" },
+  { id: 63, title: "Kendrick Lamar — HUMBLE.",         youtubeId: "MXaqpJmX7JE", startAt: 5, category: "🇺🇸 Rap US" },
+  { id: 64, title: "Drake — God's Plan",               youtubeId: "xpVfcZ0ZcFM", startAt: 5, category: "🇺🇸 Rap US" },
+  { id: 65, title: "50 Cent — In Da Club",             youtubeId: "5qm8PH4xAss", startAt: 5, category: "🇺🇸 Rap US" },
 ];
 
 module.exports = SONGS;

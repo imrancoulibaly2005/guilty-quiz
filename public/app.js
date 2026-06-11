@@ -10,6 +10,8 @@ const ALL_CATEGORIES = [
   { name: '🕹️ Classiques 80-90s', count: 5  },
   { name: '📺 CN, Nick & Disney',  count: 14 },
   { name: '🎌 Anime VF',           count: 9  },
+  { name: '🎤 Rap FR',             count: 12 },
+  { name: '🇺🇸 Rap US',            count: 7  },
 ];
 
 // ── Session persistence ───────────────────────────────────
