@@ -80,7 +80,7 @@ const SONGS = [
   { id: 55, title: "Booba — Jour de paye",             youtubeId: "PgnqVuNLtac", startAt: 5, category: "🎤 Rap FR" },
   { id: 56, title: "PNL — Deux Frères",                youtubeId: "vNpl-M3_9_o", startAt: 5, category: "🎤 Rap FR" },
   { id: 57, title: "Nekfeu — On Verra",                youtubeId: "YltjliK0ZeA", startAt: 5, category: "🎤 Rap FR" },
-  { id: 58, title: "Kaaris — Goulag",                  youtubeId: "OoaBn1V4Krw", startAt: 5, category: "🎤 Rap FR" },
+  { id: 58, title: "Kaaris — Goulag",                  youtubeId: "OoaBn1V4Krw", startAt: 60, category: "🎤 Rap FR" },
   { id: 66, title: "Indila — Dernière Danse",          youtubeId: "K5KAc5CoCuk", startAt: 5, category: "🎤 Rap FR" },
   { id: 67, title: "Zaho — C'est chelou",              youtubeId: "pHy0LkdpxSU", startAt: 5, category: "🎤 Rap FR" },
   { id: 68, title: "Colonel Reyel — Aurélie",          youtubeId: "AC_a98Yd_9Q", startAt: 5, category: "🎤 Rap FR" },
