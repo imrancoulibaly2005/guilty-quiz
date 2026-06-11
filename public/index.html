@@ -50,7 +50,6 @@
     <div class="room-code-label">Code de la salle</div>
     <div class="room-code" id="displayRoomCode">----</div>
     <div class="text-sm text-dim text-center mt-8">Partage ce code avec tes amis !</div>
-    <a id="displayLink" href="#" target="_blank" class="text-sm text-center mt-8" style="display:block;color:var(--cyan);text-decoration:none;font-weight:600">📺 Ouvrir la vue salle ↗</a>
   </div>
 
   <!-- Players -->
@@ -72,6 +71,7 @@
   </div>
 
   <div id="waitingActions" style="display:none;width:100%;max-width:480px;flex-direction:column;gap:10px">
+    <a id="displayLink" href="#" target="_blank" class="btn btn-secondary btn-full" style="text-align:center;text-decoration:none">📺 Ouvrir la vue salle</a>
     <button class="btn btn-primary btn-full" id="btnStartGame">▶ Lancer la partie</button>
     <button class="btn btn-danger btn-full" id="btnStopGameWaiting">🛑 Fermer la salle</button>
   </div>
