@@ -12,7 +12,7 @@ const ALL_CATEGORIES = [
   { name: '🎌 Anime VF',           count: 9  },
   { name: '🎤 Rap FR',             count: 15 },
   { name: '🎶 Variétés FR',        count: 11 },
-  { name: '🇺🇸 Rap US',            count: 7  },
+  { name: '🇺🇸 Rap US',            count: 8  },
 ];
 
 // ── Session persistence ───────────────────────────────────

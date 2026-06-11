@@ -110,6 +110,7 @@ const SONGS = [
   { id: 63, title: "Kendrick Lamar — HUMBLE.",         youtubeId: "MXaqpJmX7JE", startAt: 5, category: "🇺🇸 Rap US" },
   { id: 64, title: "Drake — God's Plan",               youtubeId: "xpVfcZ0ZcFM", startAt: 5, category: "🇺🇸 Rap US" },
   { id: 65, title: "50 Cent — In Da Club",             youtubeId: "5qm8PH4xAss", startAt: 5, category: "🇺🇸 Rap US" },
+  { id: 80, title: "Kendrick Lamar — Not Like Us",     youtubeId: "H58vbez_m4E", startAt: 5, category: "🇺🇸 Rap US" },
 ];
 
 module.exports = SONGS;
