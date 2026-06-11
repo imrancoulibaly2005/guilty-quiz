@@ -326,7 +326,7 @@ function connectSocket() {
     saveSession();
 
     $('displayRoomCode').textContent = data.roomCode;
-    $('displayLink').href = `/display?room=${data.roomCode}`;
+    state.displayUrl = `/display?room=${data.roomCode}`;
     showScreen('screenWaiting');
 
     if (data.isHost) {
@@ -624,6 +624,11 @@ function wireButtons() {
   // Lobby: uppercase code input
   $('inputCode').addEventListener('input', function () {
     this.value = this.value.toUpperCase();
+  });
+
+  // Open display view
+  $('btnOpenDisplay').addEventListener('click', () => {
+    if (state.displayUrl) window.open(state.displayUrl, '_blank');
   });
 
   // Waiting room: start
