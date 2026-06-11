@@ -321,6 +321,7 @@ function connectSocket() {
     saveSession();
 
     $('displayRoomCode').textContent = data.roomCode;
+    $('displayLink').href = `/display?room=${data.roomCode}`;
     showScreen('screenWaiting');
 
     if (data.isHost) {

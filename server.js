@@ -18,6 +18,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 app.get('/api/songs', (_req, res) => res.json(SONGS));
 app.get('/test', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'test.html')));
+app.get('/display', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'display.html')));
 app.get('/', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -458,6 +459,19 @@ io.on('connection', socket => {
     room.players.forEach(p => { p.score = 0; p.buzzCount = 0; p.correctCount = 0; p.delta = 0; });
 
     startNextSong(room);
+  });
+
+  // Display (audience screen — read-only observer)
+  socket.on('join_display', ({ roomCode }) => {
+    const room = rooms.get(roomCode);
+    if (!room) return socket.emit('error', { message: 'Salle introuvable.' });
+    socket.join(roomCode);
+    socket.emit('display_joined', {
+      phase:    room.phase,
+      category: room.currentSong ? room.currentSong.category : null,
+      scores:   getScores(room),
+      timeLeft: room.timeLeft,
+    });
   });
 
   // Disconnect

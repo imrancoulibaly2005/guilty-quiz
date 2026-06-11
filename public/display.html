@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🎵 Blind Test — Vue Salle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #0D0D1A;
+    --surface: #161628;
+    --border:  #2a2a4a;
+    --magenta: #FF4FCB;
+    --yellow:  #FFD600;
+    --cyan:    #00D4FF;
+    --green:   #00FF94;
+    --red:     #FF3860;
+    --text:    #E8E8F0;
+    --dim:     #888;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh; display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── JOIN SCREEN ── */
+  #joinScreen {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 20px;
+  }
+  #joinScreen h1 { font-family: 'Bangers', cursive; font-size: 3rem; color: var(--yellow); letter-spacing: .05em; }
+  #joinInput {
+    padding: 12px 20px; border-radius: 12px; border: 2px solid var(--border);
+    background: var(--surface); color: var(--text); font-size: 1.4rem;
+    text-transform: uppercase; letter-spacing: .2em; text-align: center; width: 200px;
+    outline: none;
+  }
+  #joinInput:focus { border-color: var(--cyan); }
+  #joinBtn {
+    padding: 12px 32px; border-radius: 12px; border: none; cursor: pointer;
+    background: var(--magenta); color: #fff; font-size: 1.1rem; font-weight: 700;
+  }
+  #joinError { color: var(--red); font-size: .9rem; }
+
+  /* ── DISPLAY SCREEN ── */
+  #displayScreen { flex: 1; display: none; flex-direction: column; padding: 24px 32px; gap: 16px; }
+
+  /* Header */
+  .d-header {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .d-logo { font-family: 'Bangers', cursive; font-size: 2rem; color: var(--yellow); letter-spacing: .05em; }
+  .d-room-code { font-family: 'Bangers', cursive; font-size: 1.6rem; color: var(--dim); letter-spacing: .15em; }
+  .d-category {
+    font-family: 'Bangers', cursive; font-size: 1.4rem; letter-spacing: .06em;
+    padding: 4px 18px; border-radius: 20px;
+    background: rgba(255,79,203,.15); color: var(--magenta);
+    border: 1px solid rgba(255,79,203,.3);
+  }
+
+  /* Timer */
+  .d-timer-wrap { display: flex; align-items: center; gap: 14px; }
+  .d-timer-bar-bg {
+    flex: 1; height: 18px; border-radius: 9px;
+    background: rgba(255,255,255,.08);
+    overflow: hidden;
+  }
+  .d-timer-bar-fill {
+    height: 100%; border-radius: 9px;
+    background: linear-gradient(90deg, var(--cyan), var(--magenta));
+    transition: width .9s linear, background .5s;
+    width: 100%;
+  }
+  .d-timer-bar-fill.low { background: linear-gradient(90deg, var(--red), #ff6b6b); }
+  .d-timer-label { font-family: 'Bangers', cursive; font-size: 2rem; color: var(--cyan); min-width: 48px; text-align: right; }
+
+  /* Main area: buzz + scores */
+  .d-main { flex: 1; display: flex; gap: 24px; min-height: 0; }
+
+  /* Buzz zone */
+  .d-buzz-zone {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 16px;
+  }
+  .d-waiting {
+    font-family: 'Bangers', cursive; font-size: 2rem; color: var(--dim);
+    letter-spacing: .05em; text-align: center;
+  }
+  .d-buzz-name {
+    font-family: 'Bangers', cursive; font-size: 5rem; letter-spacing: .04em;
+    text-align: center; line-height: 1;
+    animation: buzzPop .3s cubic-bezier(.34,1.56,.64,1);
+    display: none;
+  }
+  .d-buzz-sub { font-size: 1.2rem; color: var(--yellow); font-weight: 600; display: none; }
+  @keyframes buzzPop { from{transform:scale(.5);opacity:0} to{transform:scale(1);opacity:1} }
+
+  /* Reveal banner */
+  .d-reveal {
+    background: rgba(0,255,148,.08); border: 2px solid var(--green);
+    border-radius: 16px; padding: 20px 32px; text-align: center;
+    animation: revealPop .4s cubic-bezier(.34,1.56,.64,1);
+    display: none;
+  }
+  .d-reveal.notfound { background: rgba(255,56,96,.08); border-color: var(--red); }
+  .d-reveal-label { font-size: .85rem; color: var(--dim); text-transform: uppercase; letter-spacing: .1em; }
+  .d-reveal-title {
+    font-family: 'Bangers', cursive; font-size: 3.5rem; color: var(--green);
+    letter-spacing: .05em; line-height: 1.1; margin-top: 6px;
+  }
+  .d-reveal.notfound .d-reveal-title { color: var(--red); }
+  @keyframes revealPop { from{transform:scale(.8) translateY(20px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
+
+  /* Scoreboard */
+  .d-scores {
+    width: 280px; display: flex; flex-direction: column; gap: 8px;
+    overflow-y: auto;
+  }
+  .d-score-title { font-family: 'Bangers', cursive; font-size: 1.1rem; color: var(--cyan); letter-spacing: .06em; margin-bottom: 4px; }
+  .d-score-row {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface); border-radius: 10px; padding: 8px 12px;
+    transition: background .2s;
+  }
+  .d-score-rank { font-family: 'Bangers', cursive; font-size: 1.1rem; color: var(--dim); width: 24px; }
+  .d-score-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .d-score-pseudo { flex: 1; font-weight: 600; font-size: .95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .d-score-pts { font-family: 'Bangers', cursive; font-size: 1.3rem; color: var(--yellow); }
+  .d-delta { font-size: .75rem; font-weight: 700; margin-left: 4px; }
+  .d-delta.pos { color: var(--green); }
+  .d-delta.neg { color: var(--red); }
+
+  /* Podium screen */
+  #podiumScreen {
+    flex: 1; display: none; flex-direction: column;
+    align-items: center; justify-content: center; gap: 24px; padding: 32px;
+  }
+  #podiumScreen h1 { font-family: 'Bangers', cursive; font-size: 4rem; color: var(--yellow); }
+  .d-podium-wrap { display: flex; align-items: flex-end; gap: 16px; }
+  .d-podium-block {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    min-width: 120px;
+  }
+  .d-podium-name { font-family: 'Bangers', cursive; font-size: 1.4rem; letter-spacing: .04em; }
+  .d-podium-score { font-size: .9rem; color: var(--dim); }
+  .d-podium-bar {
+    width: 100%; border-radius: 10px 10px 0 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bangers', cursive; font-size: 3rem; color: #0D0D1A;
+  }
+</style>
+</head>
+<body>
+
+<!-- JOIN -->
+<div id="joinScreen">
+  <h1>🎵 Vue Salle</h1>
+  <p style="color:var(--dim);font-size:.95rem">Entre le code de la salle à projeter</p>
+  <input type="text" id="joinInput" placeholder="CODE" maxlength="4">
+  <button id="joinBtn">Rejoindre</button>
+  <span id="joinError"></span>
+</div>
+
+<!-- DISPLAY -->
+<div id="displayScreen">
+  <div class="d-header">
+    <div class="d-logo">🎵 Blind Test</div>
+    <div class="d-category" id="dCategory">En attente…</div>
+    <div class="d-room-code" id="dRoomCode"></div>
+  </div>
+
+  <div class="d-timer-wrap">
+    <div class="d-timer-bar-bg"><div class="d-timer-bar-fill" id="dTimerFill" style="width:0%"></div></div>
+    <div class="d-timer-label" id="dTimerLabel">—</div>
+  </div>
+
+  <div class="d-main">
+    <div class="d-buzz-zone" id="dBuzzZone">
+      <div class="d-waiting" id="dWaiting">🎵 Écoute bien…</div>
+      <div class="d-buzz-name" id="dBuzzName"></div>
+      <div class="d-buzz-sub" id="dBuzzSub"></div>
+      <div class="d-reveal" id="dReveal">
+        <div class="d-reveal-label" id="dRevealLabel">✅ Bonne réponse !</div>
+        <div class="d-reveal-title" id="dRevealTitle"></div>
+      </div>
+    </div>
+
+    <div class="d-scores" id="dScores">
+      <div class="d-score-title">🏆 Scores</div>
+    </div>
+  </div>
+</div>
+
+<!-- PODIUM -->
+<div id="podiumScreen">
+  <h1>🏆 Podium</h1>
+  <div class="d-podium-wrap" id="dPodiumWrap"></div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const ROUND_DURATION = 30;
+let socket, roomCode;
+
+// ── Join ──────────────────────────────────────────────────
+const params = new URLSearchParams(location.search);
+const autoRoom = params.get('room');
+if (autoRoom) {
+  document.getElementById('joinInput').value = autoRoom.toUpperCase();
+  window.addEventListener('load', () => joinRoom(autoRoom.toUpperCase()));
+}
+
+document.getElementById('joinBtn').addEventListener('click', () => {
+  joinRoom(document.getElementById('joinInput').value.trim().toUpperCase());
+});
+document.getElementById('joinInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') joinRoom(document.getElementById('joinInput').value.trim().toUpperCase());
+});
+
+function joinRoom(code) {
+  if (!code) return;
+  roomCode = code;
+  socket = io();
+  socket.emit('join_display', { roomCode: code });
+
+  socket.on('display_joined', data => {
+    document.getElementById('joinScreen').style.display = 'none';
+    document.getElementById('displayScreen').style.display = 'flex';
+    document.getElementById('dRoomCode').textContent = code;
+    if (data.scores) renderScores(data.scores);
+    if (data.category) document.getElementById('dCategory').textContent = data.category;
+    if (data.timeLeft != null) updateTimer(data.timeLeft);
+  });
+
+  socket.on('error', err => {
+    document.getElementById('joinError').textContent = err.message;
+  });
+
+  socket.on('game_started', data => {
+    document.getElementById('dCategory').textContent = data.category;
+    renderScores(data.scores);
+    resetBuzzZone();
+    updateTimer(ROUND_DURATION);
+    document.getElementById('dTimerFill').style.width = '0%';
+  });
+
+  socket.on('timer_tick', ({ timeLeft }) => updateTimer(timeLeft));
+
+  socket.on('player_buzzed', ({ buzzOrder, activeBuzzerId }) => {
+    const active = buzzOrder.find(p => p.playerId === activeBuzzerId);
+    if (!active) return;
+    const buzz = document.getElementById('dBuzzName');
+    const sub  = document.getElementById('dBuzzSub');
+    const wait = document.getElementById('dWaiting');
+    const rev  = document.getElementById('dReveal');
+
+    wait.style.display = 'none';
+    rev.style.display  = 'none';
+    buzz.textContent   = active.pseudo;
+    buzz.style.color   = active.color;
+    buzz.style.display = 'block';
+    buzz.style.animation = 'none';
+    void buzz.offsetWidth;
+    buzz.style.animation = '';
+    sub.textContent   = `⚡ +${active.pointsIfCorrect} pts`;
+    sub.style.display = 'block';
+  });
+
+  socket.on('score_update', ({ scores }) => renderScores(scores));
+
+  socket.on('song_revealed', ({ correctTitle, found, scores }) => {
+    renderScores(scores);
+    const rev = document.getElementById('dReveal');
+    document.getElementById('dBuzzName').style.display = 'none';
+    document.getElementById('dBuzzSub').style.display  = 'none';
+    document.getElementById('dWaiting').style.display  = 'none';
+    rev.className = 'd-reveal' + (found ? '' : ' notfound');
+    document.getElementById('dRevealLabel').textContent = found ? '✅ Bonne réponse !' : '❌ Pas trouvé…';
+    document.getElementById('dRevealTitle').textContent = correctTitle;
+    rev.style.display = 'block';
+    rev.style.animation = 'none';
+    void rev.offsetWidth;
+    rev.style.animation = '';
+    updateTimer(0);
+  });
+
+  socket.on('game_over', ({ podium }) => {
+    document.getElementById('displayScreen').style.display = 'none';
+    document.getElementById('podiumScreen').style.display  = 'flex';
+    renderPodium(podium);
+  });
+}
+
+// ── Helpers ───────────────────────────────────────────────
+function resetBuzzZone() {
+  document.getElementById('dWaiting').style.display  = 'block';
+  document.getElementById('dBuzzName').style.display = 'none';
+  document.getElementById('dBuzzSub').style.display  = 'none';
+  document.getElementById('dReveal').style.display   = 'none';
+}
+
+function updateTimer(t) {
+  const label = document.getElementById('dTimerLabel');
+  const fill  = document.getElementById('dTimerFill');
+  label.textContent = t;
+  const pct = Math.round((t / ROUND_DURATION) * 100);
+  fill.style.width = pct + '%';
+  fill.className = 'd-timer-bar-fill' + (t <= 10 ? ' low' : '');
+}
+
+function renderScores(scores) {
+  const wrap = document.getElementById('dScores');
+  wrap.innerHTML = '<div class="d-score-title">🏆 Scores</div>' +
+    scores.map((p, i) => {
+      const delta = p.delta > 0 ? `<span class="d-delta pos">+${p.delta}</span>`
+                  : p.delta < 0 ? `<span class="d-delta neg">${p.delta}</span>` : '';
+      return `<div class="d-score-row">
+        <span class="d-score-rank">${i + 1}</span>
+        <span class="d-score-dot" style="background:${p.color}"></span>
+        <span class="d-score-pseudo">${escHtml(p.pseudo)}</span>
+        <span class="d-score-pts">${p.score}${delta}</span>
+      </div>`;
+    }).join('');
+}
+
+function renderPodium(podium) {
+  const order = [1, 0, 2]; // silver, gold, bronze positions
+  const heights = [180, 240, 140];
+  const colors  = ['#C0C0C0', '#FFD600', '#CD7F32'];
+  const medals  = ['🥈', '🥇', '🥉'];
+  const wrap = document.getElementById('dPodiumWrap');
+  wrap.innerHTML = order.map(i => {
+    const p = podium[i];
+    if (!p) return '';
+    return `<div class="d-podium-block">
+      <div class="d-podium-name" style="color:${p.color}">${escHtml(p.pseudo)}</div>
+      <div class="d-podium-score">${p.score} pts</div>
+      <div class="d-podium-bar" style="height:${heights[i]}px;background:${colors[i]}">${medals[i]}</div>
+    </div>`;
+  }).join('');
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
